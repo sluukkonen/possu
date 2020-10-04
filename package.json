@@ -1,0 +1,22 @@
+{
+  "name": "possu",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "repository": "https://github.com/sluukkonen/possu",
+  "author": "Sakumatti Luukkonen",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "@types/pg": "^7.14.5",
+    "pg": "^8.3.3"
+  },
+  "devDependencies": {
+    "jest": "^26.4.2",
+    "ts-jest": "^26.4.1",
+    "typescript": "^4.0.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  }
+}
