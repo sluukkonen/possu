@@ -24,7 +24,7 @@
     "typescript": "^4.0.3"
   },
   "scripts": {
-    "build": "tsc",
+    "prepare": "tsc",
     "test": "jest --coverage",
     "lint": "eslint ."
   }
