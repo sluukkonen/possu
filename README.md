@@ -1,4 +1,6 @@
-# Possu
+# Possu 🐖
+
+![CI](https://github.com/sluukkonen/possu/workflows/CI/badge.svg)
 
 A small companion library for [node-postgres](https://node-postgres.com/)
 
