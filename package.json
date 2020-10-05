@@ -6,6 +6,9 @@
   "author": "Sakumatti Luukkonen",
   "license": "MIT",
   "private": false,
+  "engines": {
+    "node": ">= 8"
+  },
   "dependencies": {
     "@types/pg": "^7.14.5",
     "pg": "^8.3.3"
