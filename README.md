@@ -15,7 +15,7 @@ A small companion library for [node-postgres](https://node-postgres.com/)
 - Savepoints
 - Automatic transaction retrying (if feasible)
 
-## API
+## APIis
 
 - Building queries
   - [sql](#sql)
@@ -110,7 +110,14 @@ const name = await execute(pool, sql`INSERT INTO pet (name) VALUES ('Fae')`)
 
 ### transaction
 
-Starts a transaction and executes a set of queries within in. The transaction will be rolled back if an exception is thrown.
+Execute a function within a transaction.
+
+Start a transaction and execute a set of queries within it. If the function
+returns a resolved promise, the transaction is committed. Returns the value
+returned from the function.
+
+If the function returns a rejected Promise or throws any kind of error, the
+transaction is rolled back and the error is rethrown.
 
 ```typescript
 const petCount = await transaction(pool, async (tx) => {
