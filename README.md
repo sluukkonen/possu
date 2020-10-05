@@ -1,11 +1,11 @@
 # Possu
 
-A small experimental companion library for [node-postgres](https://node-postgres.com/)
+A small companion library for [node-postgres](https://node-postgres.com/)
 
-## Features & Goals
+## Goals
 
-- Write raw SQL easily
-- Make common operations like selecting a single row or a single column easy
+- Write raw SQL easily & safely
+- Make common operations like selecting a single row easy
 - Transaction handling
 
 ## TODO:
