@@ -6,7 +6,7 @@ import { SqlQuery } from './sql'
 export type Client = PoolClient | Pool
 
 /**
- * Execute a `SELECT` or other query that is expected to return results.
+ * Execute a `SELECT` or other query that returns zero or more result rows.
  *
  * Returns all result rows.
  *
@@ -25,7 +25,7 @@ export async function query<T>(client: Client, sql: SqlQuery): Promise<T[]> {
 }
 
 /**
- * Execute a `SELECT` or other query that is expected to return a single result row.
+ * Execute a `SELECT` or other query that returns exactly one row.
  *
  * Returns the first row.
  *
@@ -52,7 +52,7 @@ export async function queryOne<T>(client: Client, sql: SqlQuery): Promise<T> {
 }
 
 /**
- * Execute a `SELECT` or other query that is expected to return zero or one result rows.
+ * Execute a `SELECT` or other query that returns zero or one result rows.
  *
  * Returns the first row or `undefined`.
  *

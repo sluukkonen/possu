@@ -36,7 +36,7 @@ const query = sql`SELECT * FROM pet WHERE id = ${1}`
 
 ### query
 
-Execute a `SELECT` or other query that is expected to return results.
+Execute a `SELECT` or other query that returns zero or more result rows.
 
 Returns all result rows.
 
@@ -54,7 +54,7 @@ const names = await query(pool, sql`SELECT name FROM pet`)
 
 ### queryOne
 
-Execute a `SELECT` or other query that is expected to return a single result row.
+Execute a `SELECT` or other query that returns exactly one row.
 
 Returns the first row.
 
@@ -75,7 +75,7 @@ const name = await queryOne(pool, sql`SELECT name FROM pet WHERE id = 1`)
 
 ### queryMaybeOne
 
-Execute a `SELECT` or other query that is expected to return zero or one result rows.
+Execute a `SELECT` or other query that returns zero or one result rows.
 
 Returns the first row or `undefined`.
 
