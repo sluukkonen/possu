@@ -114,8 +114,8 @@ Starts a transaction and executes a set of queries within in. The transaction wi
 
 ```typescript
 const petCount = await transaction(pool, async (tx) => {
-  await query(tx, sql`INSERT INTO pet (name) VALUES ('Senna')`)
-  const count = await one(tx, sql`SELECT count(*) FROM pet`)
+  await execute(tx, sql`INSERT INTO pet (name) VALUES ('Senna')`)
+  const count = await queryOne(tx, sql`SELECT count(*) FROM pet`)
   if (count > 5) {
     throw new Error('You have too many pets already!')
   }
