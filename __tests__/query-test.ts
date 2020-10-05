@@ -1,4 +1,4 @@
-import { Pool } from 'pg'
+import { Pool, PoolClient } from 'pg'
 import { NoRowsReturnedError, TooManyRowsReturnedError } from '../src/errors'
 import { query, queryOne, queryMaybeOne, execute, Client } from '../src/queries'
 import { transaction } from '../src/transaction'
@@ -137,45 +137,58 @@ describe('execute()', () => {
 })
 
 describe('transaction()', () => {
-  it('executes a set of queries in a transaction, commiting the results', async () => {
-    await expect(
-      transaction(pool, (tx) =>
-        execute(tx, sql`INSERT INTO pet (name) VALUES ('Bethany')`)
-      )
-    ).resolves.toEqual(1)
+  const insertPet = (tx: PoolClient) =>
+    execute(tx, sql`INSERT INTO pet (name) VALUES ('Bethany')`)
+  const getPetCount = () =>
+    query(pool, sql`SELECT count(*) FROM pet`).then(Number)
 
-    await expect(query(pool, sql`SELECT name FROM pet`)).resolves.toEqual([
-      'Iiris',
-      'Jean',
-      'Senna',
-      'Bethany',
-    ])
+  it('executes a set of queries in a transaction, commiting the results', async () => {
+    await expect(getPetCount()).resolves.toBe(3)
+    await transaction(pool, insertPet)
+    await expect(getPetCount()).resolves.toBe(4)
   })
 
-  it('rolls back the transaction if an exception is thrown', async () => {
+  it('returns the value returned by the function', async () => {
+    const result = await transaction(pool, async (tx) => {
+      await insertPet(tx)
+      return 42
+    })
+    expect(result).toBe(42)
+  })
+
+  it('rolls back the transaction if the function returns a rejected promise', async () => {
     await expect(
       transaction(pool, async (tx) => {
-        await execute(
-          tx,
-          sql`INSERT INTO pet (name) VALUES ('Bethany') RETURNING id`
-        )
+        await insertPet(tx)
         throw new Error('Boom!')
       })
     ).rejects.toThrowError(new Error('Boom!'))
+    await expect(getPetCount()).resolves.toBe(3)
+  })
 
-    await expect(query(pool, sql`SELECT name FROM pet`)).resolves.toEqual([
-      'Iiris',
-      'Jean',
-      'Senna',
-    ])
+  it('rolls back the transaction if the function throws an error', async () => {
+    await expect(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      transaction(pool, (tx) => (insertPet(tx) as any).than(Number)) // Intentional typo
+    ).rejects.toThrowError(
+      new TypeError('insertPet(...).than is not a function')
+    )
+  })
+
+  it('throws an error and does not execute the function if it fails to check out a connection from the pool', async () => {
+    const failPool = new Pool({ port: 54321 })
+    const fn = jest.fn()
+    await expect(transaction(failPool, fn)).rejects.toThrowError(
+      new Error('connect ECONNREFUSED 127.0.0.1:54321')
+    )
+    expect(fn).toHaveBeenCalledTimes(0)
   })
 
   it('accepts a checked-out client as well', async () => {
     const client = await pool.connect()
     try {
-      await expect(
-        transaction(client, (tx) => queryOne(tx, sql`SELECT count(*) FROM pet`))
-      ).resolves.toEqual('3')
+      await transaction(client, insertPet)
+      await expect(getPetCount()).resolves.toEqual(4)
     } finally {
       client.release()
     }
