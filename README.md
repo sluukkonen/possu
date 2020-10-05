@@ -24,6 +24,7 @@ A small companion library for [node-postgres](https://node-postgres.com/)
   - [queryOne](#queryOne)
   - [queryMaybeOne](#queryMaybeOne)
   - [execute](#execute)
+- Transactions
   - [transaction](#transaction)
 
 ## sql
