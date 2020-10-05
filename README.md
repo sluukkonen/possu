@@ -45,7 +45,7 @@ const query = sql`SELECT * FROM pet WHERE id = ${1}`
 
 Execute a `SELECT` or other query that returns zero or more result rows.
 
-Returns all result rows.
+Returns the result rows.
 
 ```typescript
 const pets = await query(pool, sql`SELECT * FROM pet`)
