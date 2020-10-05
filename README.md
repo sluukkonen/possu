@@ -8,7 +8,7 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 
 - A Promise-based API
 - Write raw SQL easily & safely with tagged template strings
-- Make common operations like selecting a single row easy
+- Make common operations like selecting a single row or a single column easy
 - Transaction handling
 
 ## TODO:
