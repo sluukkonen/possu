@@ -7,7 +7,7 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 ## Features & Goals
 
 - A Promise-based API
-- Write raw SQL easily & safely
+- Write raw SQL easily & safely with tagged template strings
 - Make common operations like selecting a single row easy
 - Transaction handling
 
