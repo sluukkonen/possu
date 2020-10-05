@@ -6,9 +6,9 @@ import { SqlQuery } from './sql'
 export type Client = PoolClient | Pool
 
 /**
- * Execute a `SELECT` or other query that returns zero or more result rows.
+ * Execute a `SELECT` or other query that returns zero or more rows.
  *
- * Returns the result rows.
+ * Returns all rows.
  *
  * @param client A connection pool or a client checked out from a pool.
  * @param sql The SQL query to execute.
@@ -54,7 +54,7 @@ export async function queryOne<T>(client: Client, sql: SqlQuery): Promise<T> {
 }
 
 /**
- * Execute a `SELECT` or other query that returns zero or one result rows.
+ * Execute a `SELECT` or other query that returns zero or one rows.
  *
  * Returns the first row or `undefined`.
  *

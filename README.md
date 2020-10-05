@@ -44,9 +44,9 @@ const query = sql`SELECT * FROM pet WHERE id = ${1}`
 
 ### query
 
-Execute a `SELECT` or other query that returns zero or more result rows.
+Execute a `SELECT` or other query that returns zero or more rows.
 
-Returns the result rows.
+Returns all rows.
 
 ```typescript
 const pets = await query(pool, sql`SELECT * FROM pet`)
@@ -83,7 +83,7 @@ const name = await queryOne(pool, sql`SELECT name FROM pet WHERE id = 1`)
 
 ### queryMaybeOne
 
-Execute a `SELECT` or other query that returns zero or one result rows.
+Execute a `SELECT` or other query that returns zero or one rows.
 
 Returns the first row or `undefined`.
 
