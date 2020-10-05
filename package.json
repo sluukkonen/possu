@@ -26,5 +26,6 @@
   "scripts": {
     "build": "tsc",
     "test": "jest --coverage",
+    "lint": "eslint ."
   }
 }
