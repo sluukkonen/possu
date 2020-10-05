@@ -1,5 +1,7 @@
 import { possu } from './possu'
 
+const hasOwnProperty = Object.prototype.hasOwnProperty
+
 export interface SqlQuery {
   text: string
   values: unknown[]
@@ -20,9 +22,29 @@ export function sql(
   strings: TemplateStringsArray,
   ...values: unknown[]
 ): SqlQuery {
+  let text = strings[0]
+
+  for (let i = 1; i < strings.length; i++) {
+    const value = values[i - 1]
+
+    if (isSqlQuery(value)) {
+      throw new TypeError('Nested queries are not supported at the moment!')
+    }
+
+    text += '$' + i + strings[i]
+  }
+
   return {
-    text: strings.reduce((str, acc, i) => str + '$' + i + acc),
+    text,
     values,
     [possu]: true,
   }
+}
+
+export function isSqlQuery(value: unknown): value is SqlQuery {
+  return (
+    typeof value === 'object' &&
+    value != null &&
+    hasOwnProperty.call(value, possu)
+  )
 }
