@@ -73,15 +73,15 @@ export async function queryMaybeOne<T>(
 
   if (length > 1) {
     throw new TooManyRowsReturnedError(
-      `Expected query to return at most 1 row, got ${length}`,
+      `Expected query to return 1 row at most, got ${length}`,
       sql
     )
   }
 
-  return fields.length !== 1
-    ? rows[0]
-    : length === 0
+  return length === 0
     ? undefined
+    : fields.length !== 1
+    ? rows[0]
     : rows[0][fields[0].name]
 }
 
