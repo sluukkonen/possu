@@ -13,10 +13,10 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 
 ## TODO:
 
-- More query builder features (e.g. nested queries, arrays, json, unnesting)
-- Customization of transaction isolation levels
+- More query builder features (e.g. nested queries, arrays, unnesting)
+- Customization of transaction modes
 - Savepoints
-- Automatic transaction retrying (if feasible)
+- Automatic transaction retrying (perhaps)
 
 ## API
 
