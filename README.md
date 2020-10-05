@@ -4,7 +4,7 @@
 
 A small companion library for [node-postgres](https://node-postgres.com/)
 
-## Goals
+## Features & Goals
 
 - Write raw SQL easily & safely
 - Make common operations like selecting a single row easy
