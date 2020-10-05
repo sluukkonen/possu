@@ -20,9 +20,9 @@ A small experimental companion library for [node-postgres](https://node-postgres
   - [sql](#sql)
 - Executing queries
   - [query](#query)
-  - [many](#many)
-  - [one](#one)
-  - [maybeOne](#maybeOne)
+  - [queryOne](#queryOne)
+  - [queryMaybeOne](#queryMaybeOne)
+  - [execute](#execute)
   - [transaction](#transaction)
 
 ## sql
@@ -30,73 +30,81 @@ A small experimental companion library for [node-postgres](https://node-postgres
 Creates an SQL query that the other functions of Possu accept. This is the only way to create queries in Possu.
 
 ```typescript
-const query = sql`SELECT * FROM pet WHERE id ${id}`
+const query = sql`SELECT * FROM pet WHERE id = ${1}`
+// => { text: 'SELECT * FROM pet WHERE id = $1', values: [1] }
 ```
 
 ### query
 
-Executes a query and returns the result object. A thin wrapper around pg's `query` method.
+Execute a `SELECT` or other query that is expected to return results.
+
+Returns all result rows.
 
 ```typescript
-const result = await query(pool, sql`SELECT * FROM pet`)
-const rows = result.rows // [{ id: 1, name: 'Iiris', id: 2: name: 'Jean' }]
-const rowCount = result.rowCount // 2
-```
-
-### many
-
-Executes a query and returns the result rows.
-
-```typescript
-const pets = await many(pool, sql`SELECT * FROM pet`) // [{ id: 1, name: 'Iiris', id: 2: name: 'Jean' }]
+const pets = await query(pool, sql`SELECT * FROM pet`)
+// => [{ id: 1, name: 'Iiris', id: 2: name: 'Jean' }]
 ```
 
 If selecting a single column, each result row is unwrapped automatically.
 
 ```typescript
-const names = await many(pool, sql`SELECT name FROM pet`) // ['Iiris', 'Jean']
+const names = await query(pool, sql`SELECT name FROM pet`)
+// => ['Iiris', 'Jean']
 ```
 
-### one
+### queryOne
 
-Executes a query and returns the first row.
+Execute a `SELECT` or other query that is expected to return a single result row.
 
-- Throws a `NoRowsReturnedError` if the query returned 0 rows
-- Throws a `TooManyRowsReturnedError` if the query returned more than 1 row
+Returns the first row.
 
-```typescript
-const pet = await one(pool, sql`SELECT * FROM pet WHERE id = 1`) // { id: 1, name: 'Iiris' }
-```
-
-If selecting a single column, it is unwrapped automatically.
+- Throws a `NoRowsReturnedError` if query returns no rows.
+- Throws a `TooManyRowsReturnedError` if query returns more than 1 row.
 
 ```typescript
-const name = await one(pool, sql`SELECT name FROM pet WHERE id = 1`) // 'Iiris'
-```
-
-```typescript
-const exists = await one(
-  pool,
-  sql`SELECT exists(SELECT 1 FROM pet WHERE name = 'Iiris')`
-) // true
-```
-
-### maybeOne
-
-Executes a query and returns the first row if it exists, `undefined` otherwise.
-
-- Throws a `TooManyRowsReturnedError` if the query returned more than 1 row
-
-```typescript
-const pet = await maybeOne(pool, sql`SELECT * FROM pet WHERE id = 1`) // { id: 1, name: 'Iiris' }
-
-const nothing = await maybeOne(pool, sql`SELECT * FROM pet WHERE false`) // undefined
+const pet = await queryOne(pool, sql`SELECT * FROM pet WHERE id = 1`)
+// => { id: 1, name: 'Iiris' }
 ```
 
 If selecting a single column, it is unwrapped automatically.
 
 ```typescript
-const name = await one(pool, sql`SELECT name FROM pet WHERE id = 1`) // 'Iiris'
+const name = await queryOne(pool, sql`SELECT name FROM pet WHERE id = 1`)
+// => 'Iiris'
+```
+
+### queryMaybeOne
+
+Execute a `SELECT` or other query that is expected to return zero or one result rows.
+
+Returns the first row or `undefined`.
+
+- Throws a `TooManyRowsReturnedError` if query returns more than 1 row.
+
+```typescript
+const pet = await queryMaybeOne(pool, sql`SELECT * FROM pet WHERE id = 1`)
+// => { id: 1, name: 'Iiris' }
+
+const nothing = await queryMaybeOne(pool, sql`SELECT * FROM pet WHERE false`)
+// => undefined
+```
+
+If selecting a single column, it is unwrapped automatically.
+
+```typescript
+const name = await queryMaybeOne(pool, sql`SELECT name FROM pet WHERE id = 1`)
+// => 'Iiris'
+```
+
+### execute
+
+Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to return any rows.
+
+Returns the number of rows affected.
+
+```typescript
+const name = await execute(pool, sql`INSERT INTO pet (name) VALUES ('Fae')`)
+// => 1
 ```
 
 ### transaction

@@ -5,15 +5,45 @@ import { SqlQuery } from './sql'
 
 export type Client = PoolClient | Pool
 
-export async function one<T>(client: Client, sql: SqlQuery): Promise<T> {
-  const { fields, rows } = await query<any>(client, sql)
+/**
+ * Execute a `SELECT` or other query that is expected to return results.
+ *
+ * Returns all result rows.
+ *
+ * @param client A connection pool or a client checked out from a pool.
+ * @param sql The SQL query to execute.
+ */
+export async function query<T>(client: Client, sql: SqlQuery): Promise<T[]> {
+  const { fields, rows } = await send<any>(client, sql)
+
+  if (fields.length !== 1) {
+    return rows
+  } else {
+    const { name } = fields[0]
+    return rows.map((row: any) => row[name])
+  }
+}
+
+/**
+ * Execute a `SELECT` or other query that is expected to return a single result row.
+ *
+ * Returns the first row.
+ *
+ * - Throws a `NoRowsReturnedError` if query returns no rows.
+ * - Throws a `TooManyRowsReturnedError` if query returns more than 1 row.
+ *
+ * @param client A connection pool or a client checked out from a pool.
+ * @param sql The SQL query to execute.
+ */
+export async function queryOne<T>(client: Client, sql: SqlQuery): Promise<T> {
+  const { fields, rows } = await send<any>(client, sql)
   const { length } = rows
 
   if (length === 0) {
     throw new NoRowsReturnedError(`Expected query to return exactly 1 row`, sql)
   } else if (length > 1) {
     throw new TooManyRowsReturnedError(
-      `Expected query to return exactly 1 row, got ${length} rows`,
+      `Expected query to return exactly 1 row, got ${length}`,
       sql
     )
   }
@@ -21,16 +51,26 @@ export async function one<T>(client: Client, sql: SqlQuery): Promise<T> {
   return fields.length !== 1 ? rows[0] : rows[0][fields[0].name]
 }
 
-export async function maybeOne<T>(
+/**
+ * Execute a `SELECT` or other query that is expected to return zero or one result rows.
+ *
+ * Returns the first row or `undefined`.
+ *
+ * - Throws a `TooManyRowsReturnedError` if query returns more than 1 row.
+ *
+ * @param client A connection pool or a client checked out from a pool.
+ * @param sql The SQL query to execute.
+ */
+export async function queryMaybeOne<T>(
   client: Client,
   sql: SqlQuery
 ): Promise<T | undefined> {
-  const { fields, rows } = await query<any>(client, sql)
+  const { fields, rows } = await send<any>(client, sql)
   const { length } = rows
 
   if (length > 1) {
     throw new TooManyRowsReturnedError(
-      `Expected query to return at most 1 row, got ${length} rows`,
+      `Expected query to return at most 1 row, got ${length}`,
       sql
     )
   }
@@ -42,21 +82,20 @@ export async function maybeOne<T>(
     : rows[0][fields[0].name]
 }
 
-export async function many<T>(client: Client, sql: SqlQuery): Promise<T[]> {
-  const { fields, rows } = await query<any>(client, sql)
-
-  if (fields.length !== 1) {
-    return rows
-  } else {
-    const { name } = fields[0]
-    return rows.map((row: any) => row[name])
-  }
+/**
+ * Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to return any rows.
+ *
+ * Returns the number of rows affected.
+ *
+ * @param client A connection pool or a client checked out from a pool.
+ * @param sql The SQL query to execute.
+ */
+export async function execute(client: Client, sql: SqlQuery): Promise<number> {
+  const { rowCount } = await send(client, sql)
+  return rowCount
 }
 
-export async function query<T>(
-  client: Client,
-  sql: SqlQuery
-): Promise<QueryResult<T>> {
+async function send<T>(client: Client, sql: SqlQuery): Promise<QueryResult<T>> {
   if (!sql || !sql[possu]) {
     throw new TypeError(
       'The query was not constructed with the `sql` tagged template literal'
