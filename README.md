@@ -10,9 +10,10 @@ A small experimental companion library for [node-postgres](https://node-postgres
 
 ## TODO:
 
-- Automatic transaction retrying
-- Save points
-- More query builder combinators (e.g. arrays, unnesting)
+- More query builder features (e.g. nested queries, arrays, json, unnesting)
+- Customization of transaction isolation levels
+- Savepoints
+- Automatic transaction retrying (if feasible)
 
 ## API
 
