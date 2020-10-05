@@ -29,7 +29,10 @@ A small companion library for [node-postgres](https://node-postgres.com/)
 
 ## sql
 
-Creates an SQL query that the other functions of Possu accept. This is the only way to create queries in Possu.
+Creates an SQL query that the other functions of Possu accept.
+
+This is the only way to create queries in Possu. Other possu functions check
+that the query has been created with `sql`.
 
 ```typescript
 const query = sql`SELECT * FROM pet WHERE id = ${1}`
