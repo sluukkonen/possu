@@ -45,6 +45,7 @@ describe('validation', () => {
 
     for (const fn of fns) {
       for (const params of parameters) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await expect(fn(pool, params as any)).rejects.toThrow(
           new TypeError(
             'The query was not constructed with the `sql` tagged template literal'
@@ -117,11 +118,10 @@ describe('maybeOne()', () => {
     ).resolves.toBeUndefined()
   })
 
-  it('throws an error if the result contains too many rows', () => {
+  it('throws an error if the result contains too many rows', () =>
     expect(queryMaybeOne(pool, sql`SELECT * FROM pet`)).rejects.toThrowError(
       TooManyRowsReturnedError
-    )
-  })
+    ))
 })
 
 describe('execute()', () => {

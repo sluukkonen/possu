@@ -2,11 +2,14 @@ import { possu } from './possu'
 
 export interface SqlQuery {
   text: string
-  values: any[]
+  values: unknown[]
   [possu]: true
 }
 
-export function sql(strings: TemplateStringsArray, ...values: any[]): SqlQuery {
+export function sql(
+  strings: TemplateStringsArray,
+  ...values: unknown[]
+): SqlQuery {
   return {
     text: strings.reduce((str, acc, i) => str + '$' + i + acc),
     values,

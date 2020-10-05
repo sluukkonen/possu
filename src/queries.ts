@@ -14,13 +14,14 @@ export type Client = PoolClient | Pool
  * @param sql The SQL query to execute.
  */
 export async function query<T>(client: Client, sql: SqlQuery): Promise<T[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { fields, rows } = await send<any>(client, sql)
 
   if (fields.length !== 1) {
     return rows
   } else {
     const { name } = fields[0]
-    return rows.map((row: any) => row[name])
+    return rows.map((row) => row[name])
   }
 }
 
@@ -36,6 +37,7 @@ export async function query<T>(client: Client, sql: SqlQuery): Promise<T[]> {
  * @param sql The SQL query to execute.
  */
 export async function queryOne<T>(client: Client, sql: SqlQuery): Promise<T> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { fields, rows } = await send<any>(client, sql)
   const { length } = rows
 
@@ -65,6 +67,7 @@ export async function queryMaybeOne<T>(
   client: Client,
   sql: SqlQuery
 ): Promise<T | undefined> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { fields, rows } = await send<any>(client, sql)
   const { length } = rows
 
