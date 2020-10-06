@@ -29,7 +29,7 @@ $ npm install possu
 ```
 
 ```typescript
-import { sql, query } from 'possu'
+import { sql, queryOne } from 'possu'
 import { Pool } from 'pg'
 
 const pool = new Pool({ ... })
