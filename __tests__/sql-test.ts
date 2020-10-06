@@ -69,3 +69,14 @@ describe('sql()', () => {
     })
   })
 })
+
+describe('sql.identifier()', () => {
+  it('escapes an identifier to be used in a query', () => {
+    expect(
+      sql`SELECT * FROM ${sql.identifier('pet')} WHERE id = ${1}`
+    ).toMatchObject({
+      text: 'SELECT * FROM "pet" WHERE id = $1',
+      values: [1],
+    })
+  })
+})

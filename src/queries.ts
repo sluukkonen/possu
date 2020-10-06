@@ -1,9 +1,6 @@
 import { Pool, PoolClient, QueryResult } from 'pg'
 import { NoRowsReturnedError, TooManyRowsReturnedError } from './errors'
-import { possu } from './possu'
-import { SqlQuery } from './sql'
-
-export type Client = PoolClient | Pool
+import { SqlQuery } from './SqlQuery'
 
 /**
  * Execute a `SELECT` or other query that returns zero or more rows.
@@ -13,7 +10,10 @@ export type Client = PoolClient | Pool
  * @param client A connection pool or a client checked out from a pool.
  * @param sql The SQL query to execute.
  */
-export async function query<T>(client: Client, sql: SqlQuery): Promise<T[]> {
+export async function query<T>(
+  client: Pool | PoolClient,
+  sql: SqlQuery
+): Promise<T[]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { fields, rows } = await send<any>(client, sql)
 
@@ -36,7 +36,10 @@ export async function query<T>(client: Client, sql: SqlQuery): Promise<T[]> {
  * @param client A connection pool or a client checked out from a pool.
  * @param sql The SQL query to execute.
  */
-export async function queryOne<T>(client: Client, sql: SqlQuery): Promise<T> {
+export async function queryOne<T>(
+  client: Pool | PoolClient,
+  sql: SqlQuery
+): Promise<T> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { fields, rows } = await send<any>(client, sql)
   const { length } = rows
@@ -64,7 +67,7 @@ export async function queryOne<T>(client: Client, sql: SqlQuery): Promise<T> {
  * @param sql The SQL query to execute.
  */
 export async function queryMaybeOne<T>(
-  client: Client,
+  client: Pool | PoolClient,
   sql: SqlQuery
 ): Promise<T | undefined> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -93,13 +96,19 @@ export async function queryMaybeOne<T>(
  * @param client A connection pool or a client checked out from a pool.
  * @param sql The SQL query to execute.
  */
-export async function execute(client: Client, sql: SqlQuery): Promise<number> {
+export async function execute(
+  client: Pool | PoolClient,
+  sql: SqlQuery
+): Promise<number> {
   const { rowCount } = await send(client, sql)
   return rowCount
 }
 
-async function send<T>(client: Client, sql: SqlQuery): Promise<QueryResult<T>> {
-  if (!sql || !sql[possu]) {
+async function send<T>(
+  client: Pool | PoolClient,
+  sql: SqlQuery
+): Promise<QueryResult<T>> {
+  if (!(sql instanceof SqlQuery)) {
     throw new TypeError(
       'The query was not constructed with the `sql` tagged template literal'
     )

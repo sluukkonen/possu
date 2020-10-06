@@ -40,6 +40,7 @@ const pet = await queryOne(pool, sql`SELECT name FROM pet WHERE id = ${id}`)
 
 - Building queries
   - [sql](#sql)
+  - [sql.identifier](#sql.identifier)
 - Executing queries
   - [query](#query)
   - [queryOne](#queryOne)
@@ -66,6 +67,26 @@ Queries may also be nested. This is a powerful mechanism for code reuse.
 const query = sql`SELECT * FROM pet WHERE id = ${1}`
 const exists = sql`SELECT exists(${query})`
 // => { text: 'SELECT exists(SELECT * FROM pet WHERE id = $1)', values: [1] }
+```
+
+## sql.identifier
+
+Escape an SQL
+[identifier](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS)
+to be used in a query. This is sometimes necessary when the name of a table
+or a column is a
+[keyword](https://www.postgresql.org/docs/current/sql-keywords-appendix.html).
+It can also be used to create queries which are parametrized by table or
+column names.
+
+```typescript
+sql`SELECT * FROM ${sql.identifier('pet')}`
+// => { text: 'SELECT * FROM "pet"', values: [] }
+```
+
+```typescript
+sql`SELECT * FROM pet ORDER BY ${sql.identifier('name')} DESC`
+// => { text: 'SELECT * FROM pet ORDER BY "name" DESC', values: [] }
 ```
 
 ### query

@@ -1,5 +1,4 @@
 import { Pool, PoolClient } from 'pg'
-import { Client } from './queries'
 
 /**
  * Execute a function within a transaction.
@@ -15,7 +14,7 @@ import { Client } from './queries'
  * @param queries A function that executes a set of queries within the transaction.
  */
 export async function transaction<T>(
-  client: Client,
+  client: Pool | PoolClient,
   queries: (tx: PoolClient) => PromiseLike<T>
 ): Promise<T> {
   const tx = client instanceof Pool ? await client.connect() : client

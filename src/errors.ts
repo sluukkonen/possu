@@ -1,4 +1,4 @@
-import { SqlQuery } from './sql'
+import type { SqlQuery } from './SqlQuery'
 
 export class PossuError extends Error {}
 PossuError.prototype.name = 'PossuError'

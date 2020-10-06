@@ -1,8 +1,9 @@
 import { Pool, PoolClient } from 'pg'
 import { NoRowsReturnedError, TooManyRowsReturnedError } from '../src/errors'
-import { query, queryOne, queryMaybeOne, execute, Client } from '../src/queries'
+import { query, queryOne, queryMaybeOne, execute } from '../src/queries'
 import { transaction } from '../src/transaction'
-import { sql, SqlQuery } from '../src/sql'
+import { sql } from '../src/sql'
+import { SqlQuery } from '../src/SqlQuery'
 
 let pool: Pool
 
@@ -28,12 +29,10 @@ beforeEach(async () => {
 
 describe('validation', () => {
   it('checks that queries have been constructed with the `sql` tagged template string', async () => {
-    const fns: Array<(client: Client, query: SqlQuery) => Promise<unknown>> = [
-      query,
-      queryOne,
-      queryMaybeOne,
-      execute,
-    ]
+    const fns: Array<(
+      client: Pool | PoolClient,
+      query: SqlQuery
+    ) => Promise<unknown>> = [query, queryOne, queryMaybeOne, execute]
     const parameters = [
       'SELECT * FROM pet',
       { text: 'SELECT * FROM pet', values: [] },
