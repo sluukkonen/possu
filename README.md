@@ -8,7 +8,7 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 
 - A Promise-based API which aims to make common operations easy
 - Write raw SQL queries with tagged template strings
-- Supports nested queries
+- Support nested queries
 - Transaction handling
 - First-class TypeScript support
 - Not a framework. [node-postgres](https://node-postgres.com) already handles
@@ -103,7 +103,7 @@ const pets = await query(pool, sql`SELECT * FROM pet`)
 If selecting a single column, each result row is unwrapped automatically.
 
 ```typescript
-const names = await query(pool, sql`SELECT name FROM pet`)
+const names = await query(client, sql`SELECT name FROM pet`)
 // => ['Iiris', 'Jean']
 ```
 
@@ -124,7 +124,7 @@ const pet = await queryOne(pool, sql`SELECT * FROM pet WHERE id = 1`)
 If selecting a single column, it is unwrapped automatically.
 
 ```typescript
-const name = await queryOne(pool, sql`SELECT name FROM pet WHERE id = 1`)
+const name = await queryOne(client, sql`SELECT name FROM pet WHERE id = 1`)
 // => 'Iiris'
 ```
 
@@ -140,7 +140,7 @@ Returns the first row or `undefined`.
 const pet = await queryMaybeOne(pool, sql`SELECT * FROM pet WHERE id = 1`)
 // => { id: 1, name: 'Iiris' }
 
-const nothing = await queryMaybeOne(pool, sql`SELECT * FROM pet WHERE false`)
+const nothing = await queryMaybeOne(client, sql`SELECT * FROM pet WHERE false`)
 // => undefined
 ```
 
