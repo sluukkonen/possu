@@ -5,7 +5,7 @@ const hasOwnProperty = Object.prototype.hasOwnProperty
 export interface SqlQuery {
   text: string
   values: unknown[]
-  [possu]: true
+  [possu]: () => [TemplateStringsArray, unknown[]]
 }
 
 /**
@@ -19,32 +19,56 @@ export interface SqlQuery {
  * // => { text: 'SELECT * FROM pet WHERE id = $1', values: [1] }
  */
 export function sql(
-  strings: TemplateStringsArray,
-  ...values: unknown[]
+  parts: TemplateStringsArray,
+  ...originalValues: unknown[]
 ): SqlQuery {
-  let text = strings[0]
+  // The text of the query as a mutable array.
+  const text: string[] = []
+  // The final parts array. It may be different than the original values array
+  // if queries are nested.
+  const values: unknown[] = []
+  let placeholderIndex = 1
+  const getPlaceholder = () => `$${placeholderIndex++}`
 
-  for (let i = 1; i < strings.length; i++) {
-    const value = values[i - 1]
-
-    if (isSqlQuery(value)) {
-      throw new TypeError('Nested queries are not supported at the moment!')
-    }
-
-    text += '$' + i + strings[i]
-  }
+  sqlInner(text, values, parts, originalValues, getPlaceholder)
 
   return {
-    text,
+    text: text.join(''),
     values,
-    [possu]: true,
+    [possu]: () => [parts, originalValues],
   }
 }
 
-export function isSqlQuery(value: unknown): value is SqlQuery {
+/** The recursive inner loop for `sql`. */
+function sqlInner(
+  text: string[],
+  values: unknown[],
+  parts: TemplateStringsArray,
+  originalValues: unknown[],
+  getPlaceholder: () => string
+) {
+  text.push(parts[0])
+
+  for (let i = 1; i < parts.length; i++) {
+    const value = originalValues[i - 1]
+
+    if (isSqlQuery(value)) {
+      const [nestedParts, nestedOriginalValues] = value[possu]()
+      sqlInner(text, values, nestedParts, nestedOriginalValues, getPlaceholder)
+      // If the query was nested, do not add a placeholder, since we replace it
+      // with the nested query's text.
+      text.push(parts[i])
+    } else {
+      text.push(getPlaceholder(), parts[i])
+      values.push(value)
+    }
+  }
+}
+
+function isSqlQuery(value: unknown): value is SqlQuery {
   return (
     typeof value === 'object' &&
-    value != null &&
+    value !== null &&
     hasOwnProperty.call(value, possu)
   )
 }

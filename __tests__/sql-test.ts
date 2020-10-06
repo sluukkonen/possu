@@ -1,20 +1,17 @@
-import { possu } from '../src/possu'
 import { sql } from '../src/sql'
 
 describe('sql()', () => {
   it('empty query', () => {
-    expect(sql``).toEqual({
+    expect(sql``).toMatchObject({
       text: '',
       values: [],
-      [possu]: true,
     })
   })
 
   it('supports simple queries', () => {
-    expect(sql`SELECT * FROM pet`).toEqual({
+    expect(sql`SELECT * FROM pet`).toMatchObject({
       text: 'SELECT * FROM pet',
       values: [],
-      [possu]: true,
     })
   })
 
@@ -22,22 +19,53 @@ describe('sql()', () => {
     const id = 1
     const name = 'Iiris'
 
-    expect(sql`SELECT * FROM pet WHERE id = ${id}`).toEqual({
+    expect(sql`SELECT * FROM pet WHERE id = ${id}`).toMatchObject({
       text: 'SELECT * FROM pet WHERE id = $1',
       values: [1],
-      [possu]: true,
     })
 
-    expect(sql`SELECT * FROM pet WHERE id = ${id} OR name = ${name}`).toEqual({
+    expect(
+      sql`SELECT * FROM pet WHERE id = ${id} OR name = ${name}`
+    ).toMatchObject({
       text: 'SELECT * FROM pet WHERE id = $1 OR name = $2',
       values: [1, 'Iiris'],
-      [possu]: true,
     })
   })
 
-  it('throws an error on nested queries', () => {
-    expect(() => sql`SELECT * FROM ${sql`pet`}`).toThrowError(
-      new TypeError('Nested queries are not supported at the moment!')
-    )
+  it('supports simple nested queries', () => {
+    expect(sql`SELECT exists(${sql`SELECT * FROM pet`})`).toMatchObject({
+      text: 'SELECT exists(SELECT * FROM pet)',
+      values: [],
+    })
+  })
+
+  it('supports parametrized nested queries', () => {
+    expect(
+      sql`SELECT ${1}, exists(${sql`SELECT * FROM pet WHERE id = ${2}`}) OR ${3} = ${4}`
+    ).toMatchObject({
+      text: 'SELECT $1, exists(SELECT * FROM pet WHERE id = $2) OR $3 = $4',
+      values: [1, 2, 3, 4],
+    })
+  })
+
+  it('supports nested queries on multiple levels', () => {
+    const alwaysFalse = sql`${true} = ${false}`
+    const pets = sql`SELECT * FROM pet WHERE ${alwaysFalse}`
+    const exists = sql`SELECT exists(${pets})`
+
+    expect(alwaysFalse).toMatchObject({
+      text: '$1 = $2',
+      values: [true, false],
+    })
+
+    expect(pets).toMatchObject({
+      text: 'SELECT * FROM pet WHERE $1 = $2',
+      values: [true, false],
+    })
+
+    expect(exists).toMatchObject({
+      text: 'SELECT exists(SELECT * FROM pet WHERE $1 = $2)',
+      values: [true, false],
+    })
   })
 })

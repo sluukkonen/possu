@@ -7,11 +7,7 @@ import { sql, SqlQuery } from '../src/sql'
 let pool: Pool
 
 beforeAll(async () => {
-  pool = new Pool({
-    database: 'possu-test',
-    user: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASSWORD,
-  })
+  pool = new Pool({ database: 'possu-test' })
   await pool.query('DROP TABLE IF EXISTS pet')
   await pool.query(
     `CREATE TABLE pet (
