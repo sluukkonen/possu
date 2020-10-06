@@ -9,16 +9,6 @@ class Identifier {
 
 /** The query builder interface of Possu. */
 interface Sql {
-  /**
-   * Create an SQL query.
-   *
-   * This is the only way to create queries in Possu. Other Possu functions check
-   * that the query has been created with `sql`.
-   *
-   * @example
-   * const query = sql`SELECT * FROM pet WHERE id = ${1}`
-   * // => { text: 'SELECT * FROM pet WHERE id = $1', values: [1] }
-   */
   (parts: TemplateStringsArray, ...originalValues: unknown[]): SqlQuery
 
   /**
@@ -37,6 +27,16 @@ interface Sql {
   identifier: (str: string) => Identifier
 }
 
+/**
+ * Create an SQL query.
+ *
+ * This is the only way to create queries in Possu. Other Possu functions check
+ * that the query has been created with `sql`.
+ *
+ * @example
+ * const query = sql`SELECT * FROM pet WHERE id = ${1}`
+ * // => { text: 'SELECT * FROM pet WHERE id = $1', values: [1] }
+ */
 export const sql: Sql = (
   parts: TemplateStringsArray,
   ...originalValues: unknown[]
