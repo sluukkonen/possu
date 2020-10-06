@@ -6,9 +6,9 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 
 ## Features & Goals
 
-- A Promise-based API
+- A Promise-based API which aims to make common operations as easy as possible
 - Write raw SQL easily & safely with tagged template strings
-- Make common operations like selecting a single row or a single column easy
+- Supports nested queries
 - Transaction handling
 
 ## TODO:
@@ -40,6 +40,14 @@ that the query has been created with `sql`.
 ```typescript
 const query = sql`SELECT * FROM pet WHERE id = ${1}`
 // => { text: 'SELECT * FROM pet WHERE id = $1', values: [1] }
+```
+
+Queries may also be nested. This is a powerful mechanism for code reuse.
+
+```typescript
+const iiris = sql`SELECT * FROM pet WHERE name = ${'Iiris'}`
+const exists = sql`SELECT exists(${iiris})`
+// => { text: 'SELECT exists(SELECT * FROM pet WHERE name = $1)', values: ['Iiris'] }
 ```
 
 ### query
