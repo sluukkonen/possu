@@ -10,6 +10,10 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 - Write raw SQL easily & safely with tagged template strings
 - Supports nested queries
 - Transaction handling
+- First-class TypeScript support
+- Not a framework. [node-postgres](https://node-postgres.com) already handles
+  things like connection pooling for us, so you can integrate Possu easily to
+  an existing application.
 
 ## TODO:
 
@@ -17,6 +21,20 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 - Customization of transaction modes
 - Savepoints
 - Automatic transaction retrying (perhaps)
+
+## Getting started
+
+```
+$ npm install possu
+```
+
+```typescript
+import { sql, query } from 'possu'
+import { Pool } from 'pg'
+
+const pool = new Pool({ ... })
+const pet = await queryOne(pool, sql`SELECT name FROM pet WHERE id = ${id}`)
+```
 
 ## API
 
@@ -35,7 +53,7 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 Create an SQL query.
 
 This is the only way to create queries in Possu. Other Possu functions check
-that the query has been created with `sql`.
+at runtime that the query has been created with `sql`.
 
 ```typescript
 const query = sql`SELECT * FROM pet WHERE id = ${1}`
@@ -45,9 +63,9 @@ const query = sql`SELECT * FROM pet WHERE id = ${1}`
 Queries may also be nested. This is a powerful mechanism for code reuse.
 
 ```typescript
-const iiris = sql`SELECT * FROM pet WHERE name = ${'Iiris'}`
-const exists = sql`SELECT exists(${iiris})`
-// => { text: 'SELECT exists(SELECT * FROM pet WHERE name = $1)', values: ['Iiris'] }
+const query = sql`SELECT * FROM pet WHERE id = ${1}`
+const exists = sql`SELECT exists(${query})`
+// => { text: 'SELECT exists(SELECT * FROM pet WHERE id = $1)', values: [1] }
 ```
 
 ### query
