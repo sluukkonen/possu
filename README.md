@@ -47,7 +47,7 @@ const name = await queryOne(pool, sql`SELECT name FROM pet WHERE id = ${id}`)
   - [queryMaybeOne](#queryMaybeOne)
   - [execute](#execute)
 - Transactions
-  - [transaction](#transaction)
+  - [withTransaction](#withTransaction)
 
 ## sql
 
@@ -159,7 +159,7 @@ const name = await execute(pool, sql`INSERT INTO pet (name) VALUES ('Fae')`)
 // => 1
 ```
 
-### transaction
+### withTransaction
 
 Execute a function within a transaction.
 
@@ -171,7 +171,7 @@ If the function returns a rejected Promise or throws any kind of error, the
 transaction is rolled back and the error is rethrown.
 
 ```typescript
-const petCount = await transaction(pool, async (tx) => {
+const petCount = await withTransaction(pool, async (tx) => {
   await execute(tx, sql`INSERT INTO pet (name) VALUES ('Senna')`)
   const count = await queryOne(tx, sql`SELECT count(*) FROM pet`)
   if (count > 5) {

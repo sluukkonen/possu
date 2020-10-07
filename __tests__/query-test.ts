@@ -1,7 +1,7 @@
 import { Pool, PoolClient } from 'pg'
 import { NoRowsReturnedError, TooManyRowsReturnedError } from '../src/errors'
 import { query, queryOne, queryMaybeOne, execute } from '../src/queries'
-import { transaction } from '../src/transaction'
+import { withTransaction } from '../src/transaction'
 import { sql } from '../src/sql'
 import { SqlQuery } from '../src/SqlQuery'
 
@@ -139,12 +139,12 @@ describe('transaction()', () => {
 
   it('executes a set of queries in a transaction, commiting the results', async () => {
     await expect(getPetCount()).resolves.toBe(3)
-    await transaction(pool, insertPet)
+    await withTransaction(pool, insertPet)
     await expect(getPetCount()).resolves.toBe(4)
   })
 
   it('returns the value returned by the function', async () => {
-    const result = await transaction(pool, async (tx) => {
+    const result = await withTransaction(pool, async (tx) => {
       await insertPet(tx)
       return 42
     })
@@ -153,7 +153,7 @@ describe('transaction()', () => {
 
   it('rolls back the transaction if the function returns a rejected promise', async () => {
     await expect(
-      transaction(pool, async (tx) => {
+      withTransaction(pool, async (tx) => {
         await insertPet(tx)
         throw new Error('Boom!')
       })
@@ -164,7 +164,7 @@ describe('transaction()', () => {
   it('rolls back the transaction if the function throws an error', async () => {
     await expect(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      transaction(pool, (tx) => (insertPet(tx) as any).than(Number)) // Intentional typo
+      withTransaction(pool, (tx) => (insertPet(tx) as any).than(Number)) // Intentional typo
     ).rejects.toThrowError(
       new TypeError('insertPet(...).than is not a function')
     )
@@ -173,7 +173,7 @@ describe('transaction()', () => {
   it('throws an error and does not execute the function if it fails to check out a connection from the pool', async () => {
     const failPool = new Pool({ port: 54321 })
     const fn = jest.fn()
-    await expect(transaction(failPool, fn)).rejects.toThrowError(
+    await expect(withTransaction(failPool, fn)).rejects.toThrowError(
       new Error('connect ECONNREFUSED 127.0.0.1:54321')
     )
     expect(fn).toHaveBeenCalledTimes(0)
@@ -182,7 +182,7 @@ describe('transaction()', () => {
   it('accepts a checked-out client as well', async () => {
     const client = await pool.connect()
     try {
-      await transaction(client, insertPet)
+      await withTransaction(client, insertPet)
       await expect(getPetCount()).resolves.toEqual(4)
     } finally {
       client.release()

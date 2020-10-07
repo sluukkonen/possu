@@ -13,7 +13,7 @@ import { Pool, PoolClient } from 'pg'
  * @param client A connection pool or a client checked out from a pool.
  * @param queries A function that executes a set of queries within the transaction.
  */
-export async function transaction<T>(
+export async function withTransaction<T>(
   client: Pool | PoolClient,
   queries: (tx: PoolClient) => PromiseLike<T>
 ): Promise<T> {
