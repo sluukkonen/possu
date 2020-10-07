@@ -18,7 +18,6 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 ## TODO
 
 - More query builder features (e.g. arrays, unnesting)
-- Customization of transaction modes
 - Savepoints
 - Automatic transaction retrying (perhaps)
 
