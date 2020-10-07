@@ -184,8 +184,8 @@ const petCount = await withTransaction(pool, async (tx) => {
 
 ### withTransactionLevel
 
-Execute a set of queries within a transaction, using the given isolation
-level.
+Execute a set of queries within a transaction, using the given [isolation
+level](https://www.postgresql.org/docs/current/transaction-iso.html).
 
 The isolation level may be either:
 
@@ -211,8 +211,10 @@ const petCount = await withTransactionLevel(
 
 ### withTransactionMode
 
-Execute a set of queries within a transaction, using the given isolation
-level and access mode.
+Execute a set of queries within a transaction, using the given [isolation
+level](https://www.postgresql.org/docs/current/transaction-iso.html) and
+[access
+mode](https://www.postgresql.org/docs/current/sql-set-transaction.html).
 
 The isolation level may be either:
 
