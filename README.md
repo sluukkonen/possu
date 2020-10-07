@@ -230,7 +230,7 @@ The access mode may be either:
 - `AccessMode.ReadOnly`
 
 ```typescript
-const petCount = await withTransactionLevel(
+const petCount = await withTransactionMode(
   pool,
   {
     isolationLevel: IsolationLevel.Serializable,
