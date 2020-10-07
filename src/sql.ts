@@ -14,11 +14,8 @@ interface Sql {
   /**
    * Escape an SQL
    * [identifier](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS)
-   * to be used in a query. This is sometimes necessary when the name of a table
-   * or a column is a
-   * [keyword](https://www.postgresql.org/docs/current/sql-keywords-appendix.html).
-   * It can also be used to create queries which are parametrized by table or
-   * column names.
+   * to be used in a query. It can be used to create queries which are
+   * parametrized by table or column names.
    *
    * @example
    * sql`SELECT * FROM ${sql.identifier('pet')}`
