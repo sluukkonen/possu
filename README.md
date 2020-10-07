@@ -46,8 +46,10 @@ const name = await queryOne(pool, sql`SELECT name FROM pet WHERE id = ${id}`)
   - [queryOne](#queryOne)
   - [queryMaybeOne](#queryMaybeOne)
   - [execute](#execute)
-- Transactions
+- Transaction handling
   - [withTransaction](#withTransaction)
+  - [withTransactionLevel](#withTransactionLevel)
+  - [withTransactionMode](#withTransactionMode)
 
 ## sql
 
@@ -161,7 +163,7 @@ const name = await execute(pool, sql`INSERT INTO pet (name) VALUES ('Fae')`)
 
 ### withTransaction
 
-Execute a function within a transaction.
+Execute a set of queries within a transaction.
 
 Start a transaction and execute a set of queries within it. If the function
 returns a resolved promise, the transaction is committed. Returns the value
@@ -179,6 +181,49 @@ const petCount = await withTransaction(pool, async (tx) => {
   }
   return count
 })
+```
+
+### withTransactionLevel
+
+Execute a set of queries within a transaction, using the given isolation
+level.
+
+```typescript
+const petCount = await withTransactionLevel(
+  pool,
+  IsolationLevel.Serializable,
+  async (tx) => {
+    await execute(tx, sql`INSERT INTO pet (name) VALUES ('Senna')`)
+    const count = await queryOne(tx, sql`SELECT count(*) FROM pet`)
+    if (count > 5) {
+      throw new Error('You have too many pets already!')
+    }
+    return count
+  }
+)
+```
+
+### withTransactionMode
+
+Execute a set of queries within a transaction, using the given isolation
+level and access mode.
+
+```typescript
+const petCount = await withTransactionLevel(
+  pool,
+  {
+    isolationLevel: IsolationLevel.Serializable,
+    accessMode: AccessMode.ReadWrite,
+  },
+  async (tx) => {
+    await execute(tx, sql`INSERT INTO pet (name) VALUES ('Senna')`)
+    const count = await queryOne(tx, sql`SELECT count(*) FROM pet`)
+    if (count > 5) {
+      throw new Error('You have too many pets already!')
+    }
+    return count
+  }
+)
 ```
 
 ## Error handling

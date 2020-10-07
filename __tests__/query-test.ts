@@ -1,9 +1,16 @@
 import { Pool, PoolClient } from 'pg'
 import { NoRowsReturnedError, TooManyRowsReturnedError } from '../src/errors'
-import { query, queryOne, queryMaybeOne, execute } from '../src/queries'
-import { withTransaction } from '../src/transaction'
+import { execute, query, queryMaybeOne, queryOne } from '../src/queries'
 import { sql } from '../src/sql'
 import { SqlQuery } from '../src/SqlQuery'
+import {
+  AccessMode,
+  IsolationLevel,
+  TransactionMode,
+  withTransaction,
+  withTransactionLevel,
+  withTransactionMode,
+} from '../src/transaction'
 
 let pool: Pool
 
@@ -187,5 +194,77 @@ describe('transaction()', () => {
     } finally {
       client.release()
     }
+  })
+})
+
+describe('withTransactionLevel()', () => {
+  it.each([
+    [IsolationLevel.Default, 'read committed'],
+    [IsolationLevel.ReadCommitted, 'read committed'],
+    [IsolationLevel.RepeatableRead, 'repeatable read'],
+    [IsolationLevel.Serializable, 'serializable'],
+  ])(
+    'sets the correct isolation level (%s -> %s)',
+    async (isolationLevel, result) => {
+      await withTransactionLevel(pool, isolationLevel, async (tx) => {
+        expect(await queryOne(tx, sql`SHOW transaction_isolation`)).toBe(result)
+      })
+    }
+  )
+})
+
+describe('withTransactionMode()', () => {
+  describe.each([
+    [IsolationLevel.Default, 'read committed'],
+    [IsolationLevel.ReadCommitted, 'read committed'],
+    [IsolationLevel.RepeatableRead, 'repeatable read'],
+    [IsolationLevel.Serializable, 'serializable'],
+  ])(
+    'sets the correct isolation level (%s -> %s)',
+    (isolationLevel, isolationLevelResult) => {
+      it.each([
+        [AccessMode.Default, 'off'],
+        [AccessMode.ReadWrite, 'off'],
+        [AccessMode.ReadOnly, 'on'],
+      ])(
+        'and the correct access mode (%s -> %s)',
+        async (accessMode, accessModeResult) => {
+          await withTransactionMode(
+            pool,
+            { isolationLevel, accessMode: accessMode },
+            async (tx) => {
+              expect(await queryOne(tx, sql`SHOW transaction_isolation`)).toBe(
+                isolationLevelResult
+              )
+              expect(await queryOne(tx, sql`SHOW transaction_read_only`)).toBe(
+                accessModeResult
+              )
+            }
+          )
+        }
+      )
+    }
+  )
+
+  it('validates the isolation level', async () => {
+    const invalidTransactionMode: TransactionMode = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      isolationLevel: null as any,
+      accessMode: AccessMode.Default,
+    }
+    await expect(
+      withTransactionMode(pool, invalidTransactionMode, async (x) => x)
+    ).rejects.toThrowError(new TypeError('Invalid isolation level: null'))
+  })
+
+  it('validates the access mode', async () => {
+    const invalidTransactionMode: TransactionMode = {
+      isolationLevel: IsolationLevel.Default,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      accessMode: null as any,
+    }
+    await expect(
+      withTransactionMode(pool, invalidTransactionMode, async (x) => x)
+    ).rejects.toThrowError(new TypeError('Invalid access mode: null'))
   })
 })

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Added `withTransactionLevel` and `withTransactionMode`
+
 ### Changed
 
 - Renamed `transaction` to `withTransaction`
