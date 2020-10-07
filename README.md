@@ -15,7 +15,7 @@ A small companion library for [node-postgres](https://node-postgres.com/).
   nitty-gritty bits like connection pooling for us, so you can integrate Possu easily to
   an existing application.
 
-## TODO:
+## TODO
 
 - More query builder features (e.g. arrays, unnesting)
 - Customization of transaction modes
