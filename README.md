@@ -11,7 +11,7 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 - Support nested queries
 - Transaction handling
 - First-class TypeScript support
-- Not a framework. We let[node-postgres](https://node-postgres.com) handle the
+- Not a framework. We let [node-postgres](https://node-postgres.com) handle the
   nitty-gritty bits like connection pooling for us, so you can integrate Possu easily to
   an existing application.
 
