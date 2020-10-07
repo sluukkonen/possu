@@ -1,18 +1,49 @@
 import { Pool, PoolClient } from 'pg'
 
+/**
+ * The isolation level to use within a transaction.
+ *
+ * See
+ * {@link https://www.postgresql.org/docs/current/transaction-iso.html Transaction isolation}
+ * in the PostgreSQL manual for more information.
+ */
 export enum IsolationLevel {
+  /**
+   * The default isolation level, determined by PostgreSQL's per-connection
+   * `default_transaction_isolation` variable. By default, it corresponds to
+   * `ReadCommitted`.
+   */
   Default = 'DEFAULT',
   Serializable = 'SERIALIZABLE',
   RepeatableRead = 'REPEATABLE READ',
   ReadCommitted = 'READ COMMITTED',
 }
 
+/**
+ * The access mode to use within a transaction.
+ *
+ * See
+ * {@link https://www.postgresql.org/docs/current/sql-set-transaction.html SET TRANSACTION}
+ * in the PostgreSQL manual for more information.
+ */
 export enum AccessMode {
+  /**
+   * The default access mode, determined by PostgreSQL's per-connection
+   * `default_transaction_read_only` variable. By default, it corresponds to
+   * `ReadWrite`.
+   */
   Default = 'DEFAULT',
   ReadWrite = 'READ WRITE',
   ReadOnly = 'READ ONLY',
 }
 
+/**
+ * The isolation level and access mode to use within a transaction.
+ *
+ * See
+ * {@link https://www.postgresql.org/docs/current/transaction-iso.html Transaction isolation}
+ * in the PostgreSQL manual for more information.
+ */
 export interface TransactionMode {
   isolationLevel: IsolationLevel
   accessMode: AccessMode

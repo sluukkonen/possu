@@ -187,6 +187,13 @@ const petCount = await withTransaction(pool, async (tx) => {
 Execute a set of queries within a transaction, using the given isolation
 level.
 
+The isolation level may be either:
+
+- `IsolationLevel.Default`
+- `IsolationLevel.Serializable`
+- `IsolationLevel.RepeatableRead`
+- `IsolationLevel.ReadCommitted`
+
 ```typescript
 const petCount = await withTransactionLevel(
   pool,
@@ -206,6 +213,19 @@ const petCount = await withTransactionLevel(
 
 Execute a set of queries within a transaction, using the given isolation
 level and access mode.
+
+The isolation level may be either:
+
+- `IsolationLevel.Default`
+- `IsolationLevel.Serializable`
+- `IsolationLevel.RepeatableRead`
+- `IsolationLevel.ReadCommitted`
+
+The access mode may be either:
+
+- `AccessMode.Default`
+- `AccessMode.ReadWrite`
+- `AccessMode.ReadOnly`
 
 ```typescript
 const petCount = await withTransactionLevel(
