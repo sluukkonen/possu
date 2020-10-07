@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Renamed `transaction` to [`withTransaction`](README.md#withTransaction)
+- Renamed `transaction` to [`withTransaction`](README.md#withTransaction).
 
 ## [0.1.0] - 2020-10-07
 
