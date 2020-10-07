@@ -6,13 +6,13 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 
 ## Features & Goals
 
-- A Promise-based API which aims to make common operations easy
+- A Promise-based API which aims to reduce common boilerplate
 - Write raw SQL queries with tagged template strings
 - Support nested queries
 - Transaction handling
 - First-class TypeScript support
-- Not a framework. [node-postgres](https://node-postgres.com) already handles
-  things like connection pooling for us, so you can integrate Possu easily to
+- Not a framework. We let[node-postgres](https://node-postgres.com) handle the
+  nitty-gritty bits like connection pooling for us, so you can integrate Possu easily to
   an existing application.
 
 ## TODO:
@@ -33,7 +33,7 @@ import { sql, queryOne } from 'possu'
 import { Pool } from 'pg'
 
 const pool = new Pool({ ... })
-const pet = await queryOne(pool, sql`SELECT name FROM pet WHERE id = ${id}`)
+const name = await queryOne(pool, sql`SELECT name FROM pet WHERE id = ${id}`)
 ```
 
 ## API
