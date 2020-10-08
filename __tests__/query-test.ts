@@ -1,5 +1,5 @@
 import { Pool, PoolClient } from 'pg'
-import { NoRowsReturnedError, TooManyRowsReturnedError } from '../src/errors'
+import { ResultError } from '../src/errors'
 import { execute, query, queryMaybeOne, queryOne } from '../src/queries'
 import { sql } from '../src/sql'
 import { SqlQuery } from '../src/SqlQuery'
@@ -88,15 +88,21 @@ describe('queryOne()', () => {
       queryOne(pool, sql`SELECT name FROM pet WHERE id = ${1}`)
     ).resolves.toEqual('Iiris'))
 
-  it('throws an error if the result contains too many rows', () =>
-    expect(queryOne(pool, sql`SELECT * FROM pet`)).rejects.toThrowError(
-      TooManyRowsReturnedError
-    ))
+  it('throws an error if the result contains too many rows', () => {
+    const query = sql`SELECT * FROM pet`
 
-  it('throws an error if the result is empty', () =>
-    expect(
-      queryOne(pool, sql`SELECT * FROM pet WHERE name = ${'Nobody'}`)
-    ).rejects.toThrowError(NoRowsReturnedError))
+    return expect(queryOne(pool, query)).rejects.toThrowError(
+      new ResultError('Expected query to return exactly 1 row, got 3', query)
+    )
+  })
+
+  it('throws an error if the result is empty', () => {
+    const query = sql`SELECT * FROM pet WHERE name = ${'Nobody'}`
+
+    return expect(queryOne(pool, query)).rejects.toThrowError(
+      new ResultError('Expected query to return exactly 1 row, got 0', query)
+    )
+  })
 })
 
 describe('maybeOne()', () => {
@@ -120,10 +126,12 @@ describe('maybeOne()', () => {
     ).resolves.toBeUndefined()
   })
 
-  it('throws an error if the result contains too many rows', () =>
-    expect(queryMaybeOne(pool, sql`SELECT * FROM pet`)).rejects.toThrowError(
-      TooManyRowsReturnedError
-    ))
+  it('throws an error if the result contains too many rows', () => {
+    const query = sql`SELECT * FROM pet`
+    return expect(queryMaybeOne(pool, query)).rejects.toThrowError(
+      new ResultError('Expected query to return 1 row at most, got 3', query)
+    )
+  })
 })
 
 describe('execute()', () => {

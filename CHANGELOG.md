@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed `withTransactionLevel` and `withTransactionMode` to take the
   isolation level and access mode as the first argument. This allows the user
   to fix them more easily with e.g. `Function.prototype.bind`.
+- Replaced `TooManyRowsReturnedError` and `NoRowsReturnedError` with a generic
+  `ResultError`, which signifies that a query returned an unexpected result.
 
 ## [0.2.0] - 2020-10-08
 

@@ -1,22 +1,15 @@
 import type { SqlQuery } from './SqlQuery'
 
+/** The base class for all errors in Possu. */
 export class PossuError extends Error {}
 PossuError.prototype.name = 'PossuError'
 
-export class NoRowsReturnedError extends PossuError {
-  query: SqlQuery
-  constructor(message: string, query: SqlQuery) {
+/**
+ * An error signifying that a query returned an unexpected result.
+ */
+export class ResultError extends PossuError {
+  constructor(message: string, public query: SqlQuery) {
     super(message)
-    this.query = query
   }
 }
-NoRowsReturnedError.prototype.name = 'NoRowsReturnedError'
-
-export class TooManyRowsReturnedError extends PossuError {
-  query: SqlQuery
-  constructor(message: string, query: SqlQuery) {
-    super(message)
-    this.query = query
-  }
-}
-TooManyRowsReturnedError.prototype.name = 'TooManyRowsReturnedError'
+ResultError.prototype.name = 'ResultError'

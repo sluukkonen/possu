@@ -1,5 +1,5 @@
 import { Pool, PoolClient, QueryResult } from 'pg'
-import { NoRowsReturnedError, TooManyRowsReturnedError } from './errors'
+import { ResultError } from './errors'
 import { SqlQuery } from './SqlQuery'
 
 /**
@@ -30,8 +30,7 @@ export async function query<T>(
  *
  * Returns the first row.
  *
- * - Throws a `NoRowsReturnedError` if query returns no rows.
- * - Throws a `TooManyRowsReturnedError` if query returns more than 1 row.
+ * - Throws a `ResultError` if query does not return exactly one row.
  *
  * @param client A connection pool or a client checked out from a pool.
  * @param sql The SQL query to execute.
@@ -44,10 +43,8 @@ export async function queryOne<T>(
   const { fields, rows } = await send<any>(client, sql)
   const { length } = rows
 
-  if (length === 0) {
-    throw new NoRowsReturnedError(`Expected query to return exactly 1 row`, sql)
-  } else if (length > 1) {
-    throw new TooManyRowsReturnedError(
+  if (length === 0 || length > 1) {
+    throw new ResultError(
       `Expected query to return exactly 1 row, got ${length}`,
       sql
     )
@@ -61,7 +58,7 @@ export async function queryOne<T>(
  *
  * Returns the first row or `undefined`.
  *
- * - Throws a `TooManyRowsReturnedError` if query returns more than 1 row.
+ * - Throws a `ResultError` if query returns more than 1 row.
  *
  * @param client A connection pool or a client checked out from a pool.
  * @param sql The SQL query to execute.
@@ -75,7 +72,7 @@ export async function queryMaybeOne<T>(
   const { length } = rows
 
   if (length > 1) {
-    throw new TooManyRowsReturnedError(
+    throw new ResultError(
       `Expected query to return 1 row at most, got ${length}`,
       sql
     )

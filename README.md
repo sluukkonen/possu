@@ -111,8 +111,7 @@ Execute a `SELECT` or other query that returns exactly one row.
 
 Returns the first row.
 
-- Throws a `NoRowsReturnedError` if query returns no rows.
-- Throws a `TooManyRowsReturnedError` if query returns more than 1 row.
+- Throws a `ResultError` if query doesn't return exactly one row.
 
 ```typescript
 const pet = await queryOne(pool, sql`SELECT * FROM pet WHERE id = 1`)
@@ -132,7 +131,7 @@ Execute a `SELECT` or other query that returns zero or one rows.
 
 Returns the first row or `undefined`.
 
-- Throws a `TooManyRowsReturnedError` if query returns more than 1 row.
+- Throws a `ResultError` if query returns more than 1 row.
 
 ```typescript
 const pet = await queryMaybeOne(pool, sql`SELECT * FROM pet WHERE id = 1`)
