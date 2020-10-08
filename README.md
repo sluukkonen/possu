@@ -50,7 +50,7 @@ const name = await queryOne(pool, sql`SELECT name FROM pet WHERE id = ${id}`)
   - [withTransactionLevel](#withTransactionLevel)
   - [withTransactionMode](#withTransactionMode)
 
-## sql
+### sql
 
 Create an SQL query.
 
@@ -70,7 +70,7 @@ const exists = sql`SELECT exists(${query})`
 // => { text: 'SELECT exists(SELECT * FROM pet WHERE id = $1)', values: [1] }
 ```
 
-## sql.identifier
+### sql.identifier
 
 Escape an SQL
 [identifier](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS)
