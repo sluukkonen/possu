@@ -34,10 +34,10 @@ interface Sql {
  * const query = sql`SELECT * FROM pet WHERE id = ${1}`
  * // => { text: 'SELECT * FROM pet WHERE id = $1', values: [1] }
  */
-export const sql: Sql = (
+export const sql: Sql = function sql(
   parts: TemplateStringsArray,
   ...originalValues: unknown[]
-) => {
+) {
   // The text of the query as a mutable array.
   const text: string[] = []
   // The final parts array. It may be different than the original values array
@@ -79,7 +79,7 @@ function sqlInner(
   }
 }
 
-sql.identifier = (str: string) => {
+sql.identifier = function identifier(str: string) {
   // Ported from https://github.com/brianc/node-postgres/blob/0758b766aa04fecef24f0fd2f94bfcbea0481176/packages/pg/lib/client.js#L435-L437
   return new Identifier('"' + str.replace(/"/g, '""') + '"')
 }
