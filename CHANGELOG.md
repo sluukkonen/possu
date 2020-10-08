@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2020-10-09
+
+### Fixed
+
+- Fixed the `files` and `types` entries in package.json. With them, the
+  project should actually be usable 🙂.
+
 ## [0.3.0] - 2020-10-09
 
 ### Changed
