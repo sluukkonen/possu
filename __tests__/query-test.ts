@@ -206,7 +206,7 @@ describe('withTransactionLevel()', () => {
   ])(
     'sets the correct isolation level (%s -> %s)',
     async (isolationLevel, result) => {
-      await withTransactionLevel(pool, isolationLevel, async (tx) => {
+      await withTransactionLevel(isolationLevel, pool, async (tx) => {
         expect(await queryOne(tx, sql`SHOW transaction_isolation`)).toBe(result)
       })
     }
@@ -230,8 +230,8 @@ describe('withTransactionMode()', () => {
         'and the correct access mode (%s -> %s)',
         async (accessMode, accessModeResult) => {
           await withTransactionMode(
-            pool,
             { isolationLevel, accessMode: accessMode },
+            pool,
             async (tx) => {
               expect(await queryOne(tx, sql`SHOW transaction_isolation`)).toBe(
                 isolationLevelResult
@@ -253,7 +253,7 @@ describe('withTransactionMode()', () => {
       accessMode: AccessMode.Default,
     }
     await expect(
-      withTransactionMode(pool, invalidTransactionMode, async (x) => x)
+      withTransactionMode(invalidTransactionMode, pool, async (x) => x)
     ).rejects.toThrowError(new TypeError('Invalid isolation level: null'))
   })
 
@@ -264,7 +264,7 @@ describe('withTransactionMode()', () => {
       accessMode: null as any,
     }
     await expect(
-      withTransactionMode(pool, invalidTransactionMode, async (x) => x)
+      withTransactionMode(invalidTransactionMode, pool, async (x) => x)
     ).rejects.toThrowError(new TypeError('Invalid access mode: null'))
   })
 })

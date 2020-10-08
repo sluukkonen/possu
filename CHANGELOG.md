@@ -7,11 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Changed `withTransactionLevel` and `withTransactionMode` to take the
+  isolation level and access mode as the first argument. This allows the user
+  to fix them more easily with e.g. `Function.prototype.bind`.
+
 ## [0.2.0] - 2020-10-08
 
 ### Added
 
-- Added [`withTransactionLevel`](README.md#withTransactionLevel) and [`withTransactionMode`](README.md#withTransactionMode).
+- Added [`withTransactionLevel`](README.md#withTransactionLevel)
+  and [`withTransactionMode`](README.md#withTransactionMode).
 
 ### Changed
 

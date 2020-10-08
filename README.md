@@ -196,8 +196,8 @@ The isolation level may be either:
 
 ```typescript
 const petCount = await withTransactionLevel(
-  pool,
   IsolationLevel.Serializable,
+  pool,
   async (tx) => {
     await execute(tx, sql`INSERT INTO pet (name) VALUES ('Senna')`)
     const count = await queryOne(tx, sql`SELECT count(*) FROM pet`)
@@ -231,11 +231,11 @@ The access mode may be either:
 
 ```typescript
 const petCount = await withTransactionMode(
-  pool,
   {
     isolationLevel: IsolationLevel.Serializable,
     accessMode: AccessMode.ReadWrite,
   },
+  pool,
   async (tx) => {
     await execute(tx, sql`INSERT INTO pet (name) VALUES ('Senna')`)
     const count = await queryOne(tx, sql`SELECT count(*) FROM pet`)

@@ -71,25 +71,25 @@ export function withTransaction<T>(
   client: Pool | PoolClient,
   queries: (tx: PoolClient) => PromiseLike<T>
 ): Promise<T> {
-  return withTransactionMode(client, defaultTransactionMode, queries)
+  return withTransactionMode(defaultTransactionMode, client, queries)
 }
 
 /**
  * Execute a set of queries within a transaction, using the given isolation
  * level.
  *
- * @param client A connection pool or a client checked out from a pool.
  * @param isolationLevel The isolation level to use.
+ * @param client A connection pool or a client checked out from a pool.
  * @param queries A set of queries to execute within the transaction.
  */
 export function withTransactionLevel<T>(
-  client: Pool | PoolClient,
   isolationLevel: IsolationLevel,
+  client: Pool | PoolClient,
   queries: (tx: PoolClient) => PromiseLike<T>
 ): Promise<T> {
   return withTransactionMode(
-    client,
     { ...defaultTransactionMode, isolationLevel },
+    client,
     queries
   )
 }
@@ -98,13 +98,13 @@ export function withTransactionLevel<T>(
  * Execute a set of queries within a transaction, using the given isolation
  * level and access mode.
  *
- * @param client A connection pool or a client checked out from a pool.
  * @param transactionMode The isolation level and access mode to use.
+ * @param client A connection pool or a client checked out from a pool.
  * @param queries A set of queries to execute within the transaction.
  */
 export async function withTransactionMode<T>(
-  client: Pool | PoolClient,
   transactionMode: TransactionMode,
+  client: Pool | PoolClient,
   queries: (tx: PoolClient) => PromiseLike<T>
 ): Promise<T> {
   const beginStatement = getBeginStatement(transactionMode)
