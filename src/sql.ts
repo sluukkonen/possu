@@ -1,5 +1,6 @@
 import { SqlQuery, possu } from './SqlQuery'
 import { Client } from 'pg'
+import { isString } from './util'
 
 const { escapeIdentifier } = Client.prototype
 
@@ -21,7 +22,7 @@ interface Sql {
    * sql`SELECT * FROM ${sql.identifier('pet')}`
    * // => { text: 'SELECT * FROM "pet"', values: [] }
    */
-  identifier: (str: string) => Identifier
+  identifier: (identifier: string) => Identifier
 }
 
 /**
@@ -62,6 +63,7 @@ function sqlInner(
   text.push(parts[0])
 
   for (let i = 1; i < parts.length; i++) {
+    const part = parts[i]
     const value = originalValues[i - 1]
 
     if (value instanceof SqlQuery) {
@@ -69,17 +71,19 @@ function sqlInner(
       sqlInner(text, values, nestedParts, nestedOriginalValues, getPlaceholder)
       // If the query was nested, do not add a placeholder, since we replace it
       // with the nested query's text.
-      text.push(parts[i])
+      text.push(part)
     } else if (value instanceof Identifier) {
-      text.push(value.text, parts[i])
+      text.push(value.text, part)
     } else {
-      text.push(getPlaceholder(), parts[i])
+      text.push(getPlaceholder(), part)
       values.push(value)
     }
   }
 }
 
-sql.identifier = function identifier(name: string) {
-  // Ported from https://github.com/brianc/node-postgres/blob/0758b766aa04fecef24f0fd2f94bfcbea0481176/packages/pg/lib/client.js#L435-L437
-  return new Identifier(escapeIdentifier(name))
+sql.identifier = function identifier(identifier: string) {
+  if (!isString(identifier)) {
+    throw new TypeError(`Invalid identifier: ${identifier}`)
+  }
+  return new Identifier(escapeIdentifier(identifier))
 }
