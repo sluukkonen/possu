@@ -1,4 +1,7 @@
 import { SqlQuery, possu } from './SqlQuery'
+import { Client } from 'pg'
+
+const { escapeIdentifier } = Client.prototype
 
 class Identifier {
   constructor(public text: string) {}
@@ -76,7 +79,7 @@ function sqlInner(
   }
 }
 
-sql.identifier = function identifier(str: string) {
+sql.identifier = function identifier(name: string) {
   // Ported from https://github.com/brianc/node-postgres/blob/0758b766aa04fecef24f0fd2f94bfcbea0481176/packages/pg/lib/client.js#L435-L437
-  return new Identifier('"' + str.replace(/"/g, '""') + '"')
+  return new Identifier(escapeIdentifier(name))
 }
