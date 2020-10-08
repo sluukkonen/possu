@@ -6,13 +6,13 @@ export class SqlQuery {
   /** The values of the query. */
   values: unknown[];
   /** @internal */
-  [possu]: () => [TemplateStringsArray, unknown[]]
+  [possu]: () => readonly [TemplateStringsArray, readonly unknown[]]
 
   constructor(
     text: string,
     values: unknown[],
     parts: TemplateStringsArray,
-    originalValues: unknown[]
+    originalValues: readonly unknown[]
   ) {
     this.text = text
     this.values = values

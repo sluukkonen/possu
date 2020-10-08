@@ -1,15 +1,12 @@
 import { SqlQuery, possu } from './SqlQuery'
 
 class Identifier {
-  text: string
-  constructor(text: string) {
-    this.text = text
-  }
+  constructor(public text: string) {}
 }
 
 /** The query builder interface of Possu. */
 interface Sql {
-  (parts: TemplateStringsArray, ...originalValues: unknown[]): SqlQuery
+  (parts: TemplateStringsArray, ...originalValues: readonly unknown[]): SqlQuery
 
   /**
    * Escape an SQL
@@ -36,7 +33,7 @@ interface Sql {
  */
 export const sql: Sql = function sql(
   parts: TemplateStringsArray,
-  ...originalValues: unknown[]
+  ...originalValues: readonly unknown[]
 ) {
   // The text of the query as a mutable array.
   const text: string[] = []
@@ -56,7 +53,7 @@ function sqlInner(
   text: string[],
   values: unknown[],
   parts: TemplateStringsArray,
-  originalValues: unknown[],
+  originalValues: readonly unknown[],
   getPlaceholder: () => string
 ) {
   text.push(parts[0])
