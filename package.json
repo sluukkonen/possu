@@ -3,6 +3,7 @@
   "version": "0.3.0",
   "description": "A small companion library for node-postgres",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "repository": "https://github.com/sluukkonen/possu",
   "author": "Sakumatti Luukkonen",
   "license": "MIT",
@@ -10,6 +11,9 @@
   "engines": {
     "node": ">= 8"
   },
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "@types/pg": "^7.14.5",
     "pg": "^8.4.0"
