@@ -248,7 +248,3 @@ const petCount = await withTransactionMode(
   }
 )
 ```
-
-## Error handling
-
-All errors thrown by possu are subclasses of `PossuError`, so you can detect them with `instanceof`.
