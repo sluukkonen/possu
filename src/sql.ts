@@ -23,6 +23,15 @@ interface Sql {
    * // => { text: 'SELECT * FROM "pet"', values: [] }
    */
   identifier: (identifier: string) => Identifier
+
+  /**
+   * Serialize a value as JSON to be used in a query.
+   *
+   * @example
+   * sql`SELECT * FROM jsonb_array_elements(${sql.json([1, 2, 3])})`
+   * // => { text : 'SELECT * FROM jsonb_array_elements($1)', values: ['[1,2,3]'] }
+   */
+  json: (value: unknown) => string
 }
 
 /**
@@ -86,4 +95,8 @@ sql.identifier = function identifier(identifier: string) {
     throw new TypeError(`Invalid identifier: ${identifier}`)
   }
   return new Identifier(escapeIdentifier(identifier))
+}
+
+sql.json = function json(value: unknown) {
+  return JSON.stringify(value)
 }

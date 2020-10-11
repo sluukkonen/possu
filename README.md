@@ -43,6 +43,7 @@ const name = await queryOne(pool, sql`SELECT name FROM pet WHERE id = ${id}`)
 - Building queries
   - [sql](#sql)
   - [sql.identifier](#sql.identifier)
+  - [sql.json](#sql.json)
 - Executing queries
   - [query](#query)
   - [queryOne](#queryOne)
@@ -88,6 +89,15 @@ sql`SELECT * FROM ${sql.identifier('pet')}`
 ```typescript
 sql`SELECT * FROM pet ORDER BY ${sql.identifier('name')} DESC`
 // => { text: 'SELECT * FROM pet ORDER BY "name" DESC', values: [] }
+```
+
+### sql.json
+
+Serialize a value as JSON to be used in a query.
+
+```typescript
+sql`SELECT * FROM jsonb_array_elements(${sql.json([1, 2, 3])})`
+// => { text : 'SELECT * FROM jsonb_array_elements($1)', values: ['[1,2,3]'] }
 ```
 
 ### query

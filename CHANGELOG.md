@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a `sql.json` function for serializing values as JSON in queries.
+  Strictly speaking, this isn't necessary, since it is mostly just equivalent
+  to `JSON.stringify`, but I'm including it since it might be more readable.
+
 ## [0.4.0] - 2020-10-09
 
 ### Fixed

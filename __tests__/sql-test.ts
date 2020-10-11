@@ -87,3 +87,14 @@ describe('sql.identifier()', () => {
     )
   })
 })
+
+describe('sql.json()', () => {
+  it('serializes a value with JSON.stringify', () => {
+    expect(
+      sql`SELECT * FROM jsonb_array_elements(${sql.json([1, 2, 3])})`
+    ).toMatchObject({
+      text: 'SELECT * FROM jsonb_array_elements($1)',
+      values: ['[1,2,3]'],
+    })
+  })
+})
