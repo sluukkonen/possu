@@ -5,7 +5,7 @@
   "plugins": ["prettier", "jest", "promise", "@typescript-eslint"],
   "extends": [
     "eslint:recommended",
-    "prettier",
+    "plugin:prettier/recommended",
     "plugin:jest/recommended",
     "plugin:@typescript-eslint/recommended"
   ],
