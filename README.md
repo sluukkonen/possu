@@ -4,7 +4,6 @@
 ![Dependencies](https://img.shields.io/david/sluukkonen/possu)
 ![NPM](https://img.shields.io/npm/v/possu)
 
-
 A small companion library for [node-postgres](https://node-postgres.com/).
 
 ## Features & Goals
@@ -140,6 +139,22 @@ const names = await query(client, sql`SELECT name FROM pet`)
 // => ['Iiris', 'Jean']
 ```
 
+You may also supply an optional row parser, which validates and transforms the
+value of each row. This can be useful when combined with a library like
+[io-ts](https://github.com/gcanti/io-ts) or
+[runtypes](https://github.com/pelotom/runtypes).
+
+```typescript
+import { Record, Number, String } from 'runtypes'
+
+const Pet = Record({
+  id: Number,
+  name: String,
+})
+
+const pets = await query(client, sql`SELECT * FROM pet`, Pet.check) // Type inferred to [{ id: number, name: string }]
+```
+
 ### queryOne
 
 Execute a `SELECT` or other query that returns exactly one row.
@@ -158,6 +173,26 @@ If selecting a single column, it is unwrapped automatically.
 ```typescript
 const name = await queryOne(client, sql`SELECT name FROM pet WHERE id = 1`)
 // => 'Iiris'
+```
+
+You may also supply an optional row parser, which validates and transforms the
+value of each row. This can be useful when combined with a library like
+[io-ts](https://github.com/gcanti/io-ts) or
+[runtypes](https://github.com/pelotom/runtypes).
+
+```typescript
+import { Record, Number, String } from 'runtypes'
+
+const Pet = Record({
+  id: Number,
+  name: String,
+})
+
+const pet = await queryOne(
+  client,
+  sql`SELECT * FROM pet WHERE id = 1`,
+  Pet.check
+) // Type inferred to { id: number, name: string }
 ```
 
 ### queryMaybeOne
@@ -181,6 +216,26 @@ If selecting a single column, it is unwrapped automatically.
 ```typescript
 const name = await queryMaybeOne(pool, sql`SELECT name FROM pet WHERE id = 1`)
 // => 'Iiris'
+```
+
+You may also supply an optional row parser, which validates and transforms
+the value of each row. This can be useful when combined with a library like
+[io-ts](https://github.com/gcanti/io-ts) or
+[runtypes](https://github.com/pelotom/runtypes).
+
+```typescript
+import { Record, Number, String } from 'runtypes'
+
+const Pet = Record({
+  id: Number,
+  name: String,
+})
+
+const pet = await queryMaybeOne(
+  client,
+  sql`SELECT * FROM pet WHERE id = 1`,
+  Pet.check
+) // Type inferred to { id: number, name: string } | undefined
 ```
 
 ### execute

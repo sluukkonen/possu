@@ -72,6 +72,23 @@ describe('query()', () => {
       'Jean',
       'Senna',
     ]))
+
+  it('supports an optional row parser', async () => {
+    await expect(
+      query(pool, sql`SELECT * FROM pet`, JSON.stringify)
+    ).resolves.toEqual([
+      JSON.stringify({ id: 1, name: 'Iiris' }),
+      JSON.stringify({ id: 2, name: 'Jean' }),
+      JSON.stringify({ id: 3, name: 'Senna' }),
+    ])
+    await expect(
+      query(pool, sql`SELECT name FROM pet`, JSON.stringify)
+    ).resolves.toEqual([
+      JSON.stringify('Iiris'),
+      JSON.stringify('Jean'),
+      JSON.stringify('Senna'),
+    ])
+  })
 })
 
 describe('queryOne()', () => {
@@ -103,9 +120,22 @@ describe('queryOne()', () => {
       new ResultError('Expected query to return exactly 1 row, got 0', query)
     )
   })
+
+  it('supports an optional row parser', async () => {
+    await expect(
+      queryOne(
+        pool,
+        sql`SELECT * FROM pet WHERE name = ${'Iiris'}`,
+        JSON.stringify
+      )
+    ).resolves.toEqual(JSON.stringify({ id: 1, name: 'Iiris' }))
+    await expect(
+      queryOne(pool, sql`SELECT count(*) FROM pet`, Number)
+    ).resolves.toEqual(3)
+  })
 })
 
-describe('maybeOne()', () => {
+describe('queryMaybeOne()', () => {
   it('executes a query and returns the first row, if it exists', () =>
     expect(
       queryMaybeOne(pool, sql`SELECT * FROM pet WHERE name = ${'Iiris'}`)
@@ -131,6 +161,23 @@ describe('maybeOne()', () => {
     return expect(queryMaybeOne(pool, query)).rejects.toThrowError(
       new ResultError('Expected query to return 1 row at most, got 3', query)
     )
+  })
+
+  it('supports an optional row parser', async () => {
+    await expect(
+      queryMaybeOne(
+        pool,
+        sql`SELECT * FROM pet WHERE name = ${'Iiris'}`,
+        JSON.stringify
+      )
+    ).resolves.toEqual(JSON.stringify({ id: 1, name: 'Iiris' }))
+    await expect(
+      queryMaybeOne(
+        pool,
+        sql`SELECT name FROM pet WHERE name = ${'Iiris'}`,
+        JSON.stringify
+      )
+    ).resolves.toEqual(JSON.stringify('Iiris'))
   })
 })
 

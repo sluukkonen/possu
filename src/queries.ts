@@ -1,6 +1,7 @@
 import { Pool, PoolClient, QueryResult } from 'pg'
 import { ResultError } from './errors'
 import { SqlQuery } from './SqlQuery'
+import { coerce, map, mapField } from './util'
 
 /**
  * Execute a `SELECT` or other query that returns zero or more rows.
@@ -9,18 +10,19 @@ import { SqlQuery } from './SqlQuery'
  *
  * @param client A connection pool or a client checked out from a pool.
  * @param sql The SQL query to execute.
+ * @param rowParser A function that validates and transforms each row.
  */
 export async function query<T>(
   client: Pool | PoolClient,
-  sql: SqlQuery
+  sql: SqlQuery,
+  rowParser: (row: unknown) => T = coerce
 ): Promise<T[]> {
   const { fields, rows } = await send(client, sql)
 
   if (fields.length !== 1) {
-    return rows
+    return rowParser === coerce ? rows : map(rowParser, rows)
   } else {
-    const { name } = fields[0]
-    return rows.map((row) => row[name])
+    return mapField(fields[0].name, rowParser, rows)
   }
 }
 
@@ -33,10 +35,12 @@ export async function query<T>(
  *
  * @param client A connection pool or a client checked out from a pool.
  * @param sql The SQL query to execute.
+ * @param rowParser A function that validates and transforms the row.
  */
-export async function queryOne<T>(
+export async function queryOne<T = unknown>(
   client: Pool | PoolClient,
-  sql: SqlQuery
+  sql: SqlQuery,
+  rowParser: (row: unknown) => T = coerce
 ): Promise<T> {
   const { fields, rows } = await send(client, sql)
   const { length } = rows
@@ -48,7 +52,9 @@ export async function queryOne<T>(
     )
   }
 
-  return fields.length !== 1 ? rows[0] : rows[0][fields[0].name]
+  return fields.length !== 1
+    ? rowParser(rows[0])
+    : rowParser(rows[0][fields[0].name])
 }
 
 /**
@@ -60,10 +66,12 @@ export async function queryOne<T>(
  *
  * @param client A connection pool or a client checked out from a pool.
  * @param sql The SQL query to execute.
+ * @param rowParser A function that validates and transforms each row.
  */
-export async function queryMaybeOne<T>(
+export async function queryMaybeOne<T = unknown>(
   client: Pool | PoolClient,
-  sql: SqlQuery
+  sql: SqlQuery,
+  rowParser: (row: unknown) => T = coerce
 ): Promise<T | undefined> {
   const { fields, rows } = await send(client, sql)
   const { length } = rows
@@ -78,8 +86,8 @@ export async function queryMaybeOne<T>(
   return length === 0
     ? undefined
     : fields.length !== 1
-    ? rows[0]
-    : rows[0][fields[0].name]
+    ? rowParser(rows[0])
+    : rowParser(rows[0][fields[0].name])
 }
 
 /**
