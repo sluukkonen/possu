@@ -31,11 +31,33 @@ $ npm install possu
 ```
 
 ```typescript
-import { sql, queryOne } from 'possu'
+import { execute, queryOne, sql, withTransaction } from 'possu'
 import { Pool } from 'pg'
 
+// To start off, you'll need a connection pool from `pg`.
 const pool = new Pool({ ... })
+
+// Each possu query function accepts a connection pool as an argument.
 const name = await queryOne(pool, sql`SELECT name FROM pet WHERE id = ${id}`)
+
+// A client checked out from a pool is also accepted.
+const client = await pool.connect()
+try {
+  const count = await queryOne(client, sql`SELECT count(*) FROM pet`)
+} finally {
+  client.release()
+}
+
+// Usually it is best to work in terms of a pool, so you don't have to check out
+// and release the client yourself. However, when working with transactions,
+// using client is necessary. Thankfully, Possu includes functions that do the
+// heavy lifting for you.
+const newCount = await withTransaction(pool, async (tx) => {
+  // Here `tx` is a client checked out from the pool that the current
+  // transaction is scoped to.
+  await execute(tx, sql`INSERT INTO pet (name) VALUES(${'Napoleon'})`)
+  return queryOne(tx, sql`SELECT count(*) FROM pet`)
+})
 ```
 
 ## API
