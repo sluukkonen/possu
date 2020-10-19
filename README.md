@@ -177,16 +177,16 @@ const name = await execute(pool, sql`INSERT INTO pet (name) VALUES ('Fae')`)
 Execute a set of queries within a transaction.
 
 Start a transaction and execute a set of queries within it. If the function
-returns a resolved promise, the transaction is committed. Returns the value
+does not throw an error, the transaction is committed. Returns the value
 returned from the function.
 
-If the function returns a rejected Promise or throws any kind of error, the
-transaction is rolled back and the error is rethrown.
+If the function throws any kind of error, the transaction is rolled back and
+the error is rethrown.
 
 ```typescript
 const petCount = await withTransaction(pool, async (tx) => {
   await execute(tx, sql`INSERT INTO pet (name) VALUES ('Senna')`)
-  const count = await queryOne(tx, sql`SELECT count(*) FROM pet`)
+  const count = await queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
   if (count > 5) {
     throw new Error('You have too many pets already!')
   }
