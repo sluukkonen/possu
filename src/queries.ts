@@ -14,8 +14,7 @@ export async function query<T>(
   client: Pool | PoolClient,
   sql: SqlQuery
 ): Promise<T[]> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { fields, rows } = await send<any>(client, sql)
+  const { fields, rows } = await send(client, sql)
 
   if (fields.length !== 1) {
     return rows
@@ -39,8 +38,7 @@ export async function queryOne<T>(
   client: Pool | PoolClient,
   sql: SqlQuery
 ): Promise<T> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { fields, rows } = await send<any>(client, sql)
+  const { fields, rows } = await send(client, sql)
   const { length } = rows
 
   if (length === 0 || length > 1) {
@@ -67,8 +65,7 @@ export async function queryMaybeOne<T>(
   client: Pool | PoolClient,
   sql: SqlQuery
 ): Promise<T | undefined> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { fields, rows } = await send<any>(client, sql)
+  const { fields, rows } = await send(client, sql)
   const { length } = rows
 
   if (length > 1) {
@@ -101,10 +98,10 @@ export async function execute(
   return rowCount
 }
 
-async function send<T>(
+async function send(
   client: Pool | PoolClient,
   sql: SqlQuery
-): Promise<QueryResult<T>> {
+): Promise<QueryResult> {
   if (!(sql instanceof SqlQuery)) {
     throw new TypeError(
       'The query was not constructed with the `sql` tagged template literal'
