@@ -36,10 +36,11 @@ import { Pool } from 'pg'
 // To start off, you'll need a connection pool from `pg`.
 const pool = new Pool({ ... })
 
-// Each possu query function accepts a connection pool as an argument.
+// Each possu query function accepts a connection pool and a query created with
+// the `sql` tagged template string as an argument.
 const name = await queryOne(pool, sql`SELECT name FROM pet WHERE id = ${id}`)
 
-// A client checked out from a pool is also accepted.
+// Instead of a pool, a client checked out from a pool is also accepted.
 const client = await pool.connect()
 try {
   const count = await queryOne(client, sql`SELECT count(*) FROM pet`)
@@ -53,29 +54,34 @@ try {
 // heavy lifting for you.
 const newCount = await withTransaction(pool, async (tx) => {
   // Here `tx` is a client checked out from the pool that the current
-  // transaction is scoped to.
+  // transaction is scoped to. The client is released back to the pool after the
+  // transaction ends.
   await execute(tx, sql`INSERT INTO pet (name) VALUES(${'Napoleon'})`)
-  return queryOne(tx, sql`SELECT count(*) FROM pet`)
+  // Here we're using a custom row parser to convert the count from a string to
+  // a number.
+  return queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
 })
 ```
 
 ## API
 
-- Building queries
+- [Building queries](#building-queries)
   - [sql](#sql)
   - [sql.identifier](#sql.identifier)
   - [sql.json](#sql.json)
-- Executing queries
-  - [query](#query)
-  - [queryOne](#queryOne)
-  - [queryMaybeOne](#queryMaybeOne)
-  - [execute](#execute)
-- Transaction handling
-  - [withTransaction](#withTransaction)
-  - [withTransactionLevel](#withTransactionLevel)
-  - [withTransactionMode](#withTransactionMode)
+- [Executing queries](#executing-queries)
+  - [`query<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T[]>`](#user-content-querytclient-pool--poolclient-query-sqlquery-rowparser-row-unknown--t-promiset)
+  - [`queryOne<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T>`](#user-content-queryonetclient-pool--poolclient-query-sqlquery-rowparser-row-unknown--t-promiset)
+  - [`queryMaybeOne<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T | undefined>`](#user-content-querymaybeonetclient-pool--poolclient-query-sqlquery-rowparser-row-unknown--t-promiset--undefined)
+  - [`execute(client: Pool | PoolClient, query: SqlQuery): Promise<number>`](#user-content-executeclient-pool--poolclient-query-sqlquery-promisenumber)
+- [Transaction handling](#transaction-handling)
+  - [`withTransaction<T>(client: Pool | PoolClient, queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>`](#user-content-withtransactiontclient-pool--poolclient-queries-tx-poolclient--promiseliket-promiset)
+  - [`withTransactionLevel<T>(isolationLevel: IsolationLevel, client: Pool | PoolClient, queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>`](#user-content-withtransactionleveltisolationlevel-isolationlevel-client-pool--poolclient-queries-tx-poolclient--promiseliket-promiset)
+  - [`withTransactionMode<T>(transactionMode: TransactionMode, client: Pool | PoolClient, queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>`](#user-content-withtransactionmodettransactionmode-transactionmode-client-pool--poolclient-queries-tx-poolclient--promiseliket-promiset)
 
-### sql
+### Building queries
+
+#### sql
 
 Create an SQL query.
 
@@ -95,7 +101,7 @@ const exists = sql`SELECT exists(${query})`
 // => { text: 'SELECT exists(SELECT * FROM pet WHERE id = $1)', values: [1] }
 ```
 
-### sql.identifier
+#### sql.identifier
 
 Escape an SQL
 [identifier](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS)
@@ -112,7 +118,7 @@ sql`SELECT * FROM pet ORDER BY ${sql.identifier('name')} DESC`
 // => { text: 'SELECT * FROM pet ORDER BY "name" DESC', values: [] }
 ```
 
-### sql.json
+#### sql.json
 
 Serialize a value as JSON to be used in a query.
 
@@ -121,41 +127,55 @@ sql`SELECT * FROM jsonb_array_elements(${sql.json([1, 2, 3])})`
 // => { text : 'SELECT * FROM jsonb_array_elements($1)', values: ['[1,2,3]'] }
 ```
 
-### query
+### Executing queries
 
-Execute a `SELECT` or other query that returns zero or more rows.
+Each of the query functions take a connection pool or a client checked out of
+the pool as the first argument.
 
-Returns all rows.
-
-```typescript
-const pets = await query(pool, sql`SELECT * FROM pet`)
-// => [{ id: 1, name: 'Iiris', id: 2: name: 'Jean' }]
-```
-
-If selecting a single column, each result row is unwrapped automatically.
-
-```typescript
-const names = await query(client, sql`SELECT name FROM pet`)
-// => ['Iiris', 'Jean']
-```
-
-You may also supply an optional row parser, which validates and transforms the
-value of each row. This can be useful when combined with a library like
+For queries that return result rows, you may also supply an optional row
+parser, which validates and optionally transforms the value of each row. This
+can be useful when combined with a library like
 [io-ts](https://github.com/gcanti/io-ts) or
 [runtypes](https://github.com/pelotom/runtypes).
 
+When using TypeScript, the type of each result row is `unknown` by default,
+so you must either cast the result to the correct type yourself or to use a
+row parser that helps the TypeScript compiler infer the correct result type.
+
 ```typescript
 import { Record, Number, String } from 'runtypes'
+
+const result = await query<string>(pool, sql`SELECT name FROM pet`)
+// Type inferred to string[]
 
 const Pet = Record({
   id: Number,
   name: String,
 })
 
-const pets = await query(client, sql`SELECT * FROM pet`, Pet.check) // Type inferred to [{ id: number, name: string }]
+const pets = await query(client, sql`SELECT * FROM pet`, Pet.check)
+// Type inferred to [{ id: number, name: string }]
 ```
 
-### queryOne
+#### `query<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T[]>`
+
+Execute a `SELECT` or other query that returns zero or more rows.
+
+Returns all rows.
+
+```typescript
+const pets = await query<Pet>(pool, sql`SELECT * FROM pet`)
+// => [{ id: 1, name: 'Iiris', id: 2: name: 'Jean' }]
+```
+
+If selecting a single column, each result row is unwrapped automatically.
+
+```typescript
+const names = await query<string>(client, sql`SELECT name FROM pet`)
+// => ['Iiris', 'Jean']
+```
+
+#### `queryOne<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T>`
 
 Execute a `SELECT` or other query that returns exactly one row.
 
@@ -164,38 +184,27 @@ Returns the first row.
 - Throws a `ResultError` if query doesn't return exactly one row.
 
 ```typescript
-const pet = await queryOne(pool, sql`SELECT * FROM pet WHERE id = 1`)
+const pet = await queryOne<Pet>(pool, sql`SELECT id, name FROM pet WHERE id = 1`)
 // => { id: 1, name: 'Iiris' }
 ```
 
 If selecting a single column, it is unwrapped automatically.
 
 ```typescript
-const name = await queryOne(client, sql`SELECT name FROM pet WHERE id = 1`)
+const name = await queryOne<string>(client, sql`SELECT name FROM pet WHERE id = 1`)
 // => 'Iiris'
 ```
 
-You may also supply an optional row parser, which validates and transforms the
-value of each row. This can be useful when combined with a library like
-[io-ts](https://github.com/gcanti/io-ts) or
-[runtypes](https://github.com/pelotom/runtypes).
+You can transform the result with a custom row parser. Here we transform the
+count from a string to a number by using the built-in Number constructor.
+With it, we may also drop the explicit cast.
 
 ```typescript
-import { Record, Number, String } from 'runtypes'
-
-const Pet = Record({
-  id: Number,
-  name: String,
-})
-
-const pet = await queryOne(
-  client,
-  sql`SELECT * FROM pet WHERE id = 1`,
-  Pet.check
-) // Type inferred to { id: number, name: string }
+const count = await queryOne(client, sql`SELECT count(*) FROM pet`, Number)
+// => 3
 ```
 
-### queryMaybeOne
+#### `queryMaybeOne<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T | undefined>`
 
 Execute a `SELECT` or other query that returns zero or one rows.
 
@@ -204,52 +213,34 @@ Returns the first row or `undefined`.
 - Throws a `ResultError` if query returns more than 1 row.
 
 ```typescript
-const pet = await queryMaybeOne(pool, sql`SELECT * FROM pet WHERE id = 1`)
+const pet = await queryMaybeOne<Pet>(pool, sql`SELECT id, name FROM pet WHERE id = 1`)
 // => { id: 1, name: 'Iiris' }
 
-const nothing = await queryMaybeOne(client, sql`SELECT * FROM pet WHERE false`)
+const nothing = await queryMaybeOne<Pet>(client, sql`SELECT id, name FROM pet WHERE false`) 
 // => undefined
 ```
 
 If selecting a single column, it is unwrapped automatically.
 
 ```typescript
-const name = await queryMaybeOne(pool, sql`SELECT name FROM pet WHERE id = 1`)
+const name = await queryMaybeOne<string>(pool, sql`SELECT name FROM pet WHERE id = 1`)
 // => 'Iiris'
 ```
 
-You may also supply an optional row parser, which validates and transforms
-the value of each row. This can be useful when combined with a library like
-[io-ts](https://github.com/gcanti/io-ts) or
-[runtypes](https://github.com/pelotom/runtypes).
-
-```typescript
-import { Record, Number, String } from 'runtypes'
-
-const Pet = Record({
-  id: Number,
-  name: String,
-})
-
-const pet = await queryMaybeOne(
-  client,
-  sql`SELECT * FROM pet WHERE id = 1`,
-  Pet.check
-) // Type inferred to { id: number, name: string } | undefined
-```
-
-### execute
+#### `execute(client: Pool | PoolClient, query: SqlQuery): Promise<number>`
 
 Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to return any rows.
 
 Returns the number of rows affected.
 
 ```typescript
-const name = await execute(pool, sql`INSERT INTO pet (name) VALUES ('Fae')`)
+const rowCount = await execute(pool, sql`INSERT INTO pet (name) VALUES ('Fae')`)
 // => 1
 ```
 
-### withTransaction
+### Transaction handling
+
+#### `withTransaction<T>(client: Pool | PoolClient, queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>`
 
 Execute a set of queries within a transaction.
 
@@ -271,7 +262,7 @@ const petCount = await withTransaction(pool, async (tx) => {
 })
 ```
 
-### withTransactionLevel
+#### `withTransactionLevel<T>(isolationLevel: IsolationLevel, client: Pool | PoolClient, queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>`
 
 Execute a set of queries within a transaction, using the given [isolation
 level](https://www.postgresql.org/docs/current/transaction-iso.html).
@@ -289,7 +280,7 @@ const petCount = await withTransactionLevel(
   pool,
   async (tx) => {
     await execute(tx, sql`INSERT INTO pet (name) VALUES ('Senna')`)
-    const count = await queryOne(tx, sql`SELECT count(*) FROM pet`)
+    const count = await queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
     if (count > 5) {
       throw new Error('You have too many pets already!')
     }
@@ -298,7 +289,7 @@ const petCount = await withTransactionLevel(
 )
 ```
 
-### withTransactionMode
+#### `withTransactionMode<T>(transactionMode: TransactionMode, client: Pool | PoolClient, queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>`
 
 Execute a set of queries within a transaction, using the given [isolation
 level](https://www.postgresql.org/docs/current/transaction-iso.html) and
@@ -327,7 +318,7 @@ const petCount = await withTransactionMode(
   pool,
   async (tx) => {
     await execute(tx, sql`INSERT INTO pet (name) VALUES ('Senna')`)
-    const count = await queryOne(tx, sql`SELECT count(*) FROM pet`)
+    const count = await queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
     if (count > 5) {
       throw new Error('You have too many pets already!')
     }
