@@ -133,7 +133,7 @@ Each of the query functions take a connection pool or a client checked out of
 the pool as the first argument.
 
 For queries that return result rows, you may also supply an optional row
-parser, which validates and optionally transforms the value of each row. This
+parser, which can validate and transform the value of each row. This
 can be useful when combined with a library like
 [io-ts](https://github.com/gcanti/io-ts) or
 [runtypes](https://github.com/pelotom/runtypes).
