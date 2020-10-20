@@ -163,7 +163,9 @@ const pets = await query(client, sql`SELECT * FROM pet`, Pet.check)
   <summary>Show type signature</summary>
   
   ```typescript
-  query<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T[]>
+  query<T>(client: Pool | PoolClient,
+           query: SqlQuery,
+           rowParser?: (row: unknown) => T): Promise<T[]>
   ```
 </details>
 
@@ -189,7 +191,9 @@ const names = await query<string>(client, sql`SELECT name FROM pet`)
   <summary>Show type signature</summary>
   
   ```typescript
-  queryOne<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T>
+  queryOne<T>(client: Pool | PoolClient,
+              query: SqlQuery,
+              rowParser?: (row: unknown) => T): Promise<T>
   ```
 </details>
 
@@ -227,7 +231,9 @@ const count = await queryOne(client, sql`SELECT count(*) FROM pet`, Number)
   <summary>Show type signature</summary>
   
   ```typescript
-  queryMaybeOne<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T | undefined>
+  queryMaybeOne<T>(client: Pool | PoolClient,
+                   query: SqlQuery,
+                   rowParser?: (row: unknown) => T): Promise<T | undefined>
   ```
 </details>
 
@@ -258,7 +264,8 @@ const name = await queryMaybeOne<string>(pool, sql`SELECT name FROM pet WHERE id
   <summary>Show type signature</summary>
   
   ```typescript
-  execute(client: Pool | PoolClient, query: SqlQuery): Promise<number>
+  execute(client: Pool | PoolClient,
+          query: SqlQuery): Promise<number>
   ```
 </details>
 
