@@ -8,6 +8,7 @@
   "author": "Sakumatti Luukkonen",
   "license": "MIT",
   "private": false,
+  "keywords": ["pg", "postgres", "promise", "tagged", "template", "strings"],
   "engines": {
     "node": ">= 8"
   },
