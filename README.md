@@ -70,14 +70,14 @@ const newCount = await withTransaction(pool, async (tx) => {
   - [sql.identifier](#sql.identifier)
   - [sql.json](#sql.json)
 - [Executing queries](#executing-queries)
-  - [`query<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T[]>`](#user-content-querytclient-pool--poolclient-query-sqlquery-rowparser-row-unknown--t-promiset)
-  - [`queryOne<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T>`](#user-content-queryonetclient-pool--poolclient-query-sqlquery-rowparser-row-unknown--t-promiset)
-  - [`queryMaybeOne<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T | undefined>`](#user-content-querymaybeonetclient-pool--poolclient-query-sqlquery-rowparser-row-unknown--t-promiset--undefined)
-  - [`execute(client: Pool | PoolClient, query: SqlQuery): Promise<number>`](#user-content-executeclient-pool--poolclient-query-sqlquery-promisenumber)
+  - [query](#query)
+  - [queryOne](#queryOne)
+  - [queryMaybeOne](#queryMaybeOne)
+  - [execute](#execute)
 - [Transaction handling](#transaction-handling)
-  - [`withTransaction<T>(client: Pool | PoolClient, queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>`](#user-content-withtransactiontclient-pool--poolclient-queries-tx-poolclient--promiseliket-promiset)
-  - [`withTransactionLevel<T>(isolationLevel: IsolationLevel, client: Pool | PoolClient, queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>`](#user-content-withtransactionleveltisolationlevel-isolationlevel-client-pool--poolclient-queries-tx-poolclient--promiseliket-promiset)
-  - [`withTransactionMode<T>(transactionMode: TransactionMode, client: Pool | PoolClient, queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>`](#user-content-withtransactionmodettransactionmode-transactionmode-client-pool--poolclient-queries-tx-poolclient--promiseliket-promiset)
+  - [withTransaction](#withTransaction)
+  - [withTransactionLevel](#withTransactionLevel)
+  - [withTransactionMode](#withTransactionMode)
 
 ### Building queries
 
@@ -157,7 +157,15 @@ const pets = await query(client, sql`SELECT * FROM pet`, Pet.check)
 // Type inferred to [{ id: number, name: string }]
 ```
 
-#### `query<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T[]>`
+#### query
+
+<details>
+  <summary>Show type signature</summary>
+  
+  ```typescript
+  query<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T[]>
+  ```
+</details>
 
 Execute a `SELECT` or other query that returns zero or more rows.
 
@@ -175,7 +183,16 @@ const names = await query<string>(client, sql`SELECT name FROM pet`)
 // => ['Iiris', 'Jean']
 ```
 
-#### `queryOne<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T>`
+#### queryOne
+
+<details>
+  <summary>Show type signature</summary>
+  
+  ```typescript
+  queryOne<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T>
+  ```
+</details>
+
 
 Execute a `SELECT` or other query that returns exactly one row.
 
@@ -204,7 +221,15 @@ const count = await queryOne(client, sql`SELECT count(*) FROM pet`, Number)
 // => 3
 ```
 
-#### `queryMaybeOne<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T | undefined>`
+#### queryMaybeOne
+
+<details>
+  <summary>Show type signature</summary>
+  
+  ```typescript
+  queryMaybeOne<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T): Promise<T | undefined>
+  ```
+</details>
 
 Execute a `SELECT` or other query that returns zero or one rows.
 
@@ -227,7 +252,15 @@ const name = await queryMaybeOne<string>(pool, sql`SELECT name FROM pet WHERE id
 // => 'Iiris'
 ```
 
-#### `execute(client: Pool | PoolClient, query: SqlQuery): Promise<number>`
+#### execute
+
+<details>
+  <summary>Show type signature</summary>
+  
+  ```typescript
+  execute(client: Pool | PoolClient, query: SqlQuery): Promise<number>
+  ```
+</details>
 
 Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to return any rows.
 
@@ -240,7 +273,16 @@ const rowCount = await execute(pool, sql`INSERT INTO pet (name) VALUES ('Fae')`)
 
 ### Transaction handling
 
-#### `withTransaction<T>(client: Pool | PoolClient, queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>`
+#### withTransaction
+
+<details>
+  <summary>Show type signature</summary>
+  
+  ```typescript
+  withTransaction<T>(client: Pool | PoolClient,
+                     queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>
+  ```
+</details>
 
 Execute a set of queries within a transaction.
 
@@ -262,7 +304,17 @@ const petCount = await withTransaction(pool, async (tx) => {
 })
 ```
 
-#### `withTransactionLevel<T>(isolationLevel: IsolationLevel, client: Pool | PoolClient, queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>`
+#### withTransactionLevel
+
+<details>
+  <summary>Show type signature</summary>
+  
+  ```typescript
+  withTransactionLevel<T>(isolationLevel: IsolationLevel,
+                          client: Pool | PoolClient,
+                          queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>
+  ```
+</details>
 
 Execute a set of queries within a transaction, using the given [isolation
 level](https://www.postgresql.org/docs/current/transaction-iso.html).
@@ -289,7 +341,17 @@ const petCount = await withTransactionLevel(
 )
 ```
 
-#### `withTransactionMode<T>(transactionMode: TransactionMode, client: Pool | PoolClient, queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>`
+#### withTransactionMode
+
+<details>
+  <summary>Show type signature</summary>
+  
+  ```typescript
+  withTransactionMode<T>(transactionMode: TransactionMode,
+                         client: Pool | PoolClient,
+                         queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>
+  ```
+</details>
 
 Execute a set of queries within a transaction, using the given [isolation
 level](https://www.postgresql.org/docs/current/transaction-iso.html) and
