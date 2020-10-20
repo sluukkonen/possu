@@ -139,8 +139,8 @@ can be useful when combined with a library like
 [runtypes](https://github.com/pelotom/runtypes).
 
 When using TypeScript, the type of each result row is `unknown` by default,
-so you must either cast the result to the correct type yourself or to use a
-row parser that helps the TypeScript compiler infer the correct result type.
+so you must either cast the result to the correct type or to use a row 
+parser that helps the TypeScript compiler infer the correct result type.
 
 ```typescript
 import { Record, Number, String } from 'runtypes'
