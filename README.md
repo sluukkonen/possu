@@ -67,8 +67,8 @@ const newCount = await withTransaction(pool, async (tx) => {
 
 - [Building queries](#building-queries)
   - [sql](#sql)
-  - [sql.identifier](#sql.identifier)
-  - [sql.json](#sql.json)
+  - [sql.identifier](#user-content-sqlidentifier)
+  - [sql.json](#user-content-sqljson)
 - [Executing queries](#executing-queries)
   - [query](#query)
   - [queryOne](#queryOne)
@@ -197,7 +197,6 @@ const names = await query<string>(client, sql`SELECT name FROM pet`)
   ```
 </details>
 
-
 Execute a `SELECT` or other query that returns exactly one row.
 
 Returns the first row.
@@ -205,14 +204,20 @@ Returns the first row.
 - Throws a `ResultError` if query doesn't return exactly one row.
 
 ```typescript
-const pet = await queryOne<Pet>(pool, sql`SELECT id, name FROM pet WHERE id = 1`)
+const pet = await queryOne<Pet>(
+  pool,
+  sql`SELECT id, name FROM pet WHERE id = 1`
+)
 // => { id: 1, name: 'Iiris' }
 ```
 
 If selecting a single column, it is unwrapped automatically.
 
 ```typescript
-const name = await queryOne<string>(client, sql`SELECT name FROM pet WHERE id = 1`)
+const name = await queryOne<string>(
+  client,
+  sql`SELECT name FROM pet WHERE id = 1`
+)
 // => 'Iiris'
 ```
 
@@ -244,17 +249,26 @@ Returns the first row or `undefined`.
 - Throws a `ResultError` if query returns more than 1 row.
 
 ```typescript
-const pet = await queryMaybeOne<Pet>(pool, sql`SELECT id, name FROM pet WHERE id = 1`)
+const pet = await queryMaybeOne<Pet>(
+  pool,
+  sql`SELECT id, name FROM pet WHERE id = 1`
+)
 // => { id: 1, name: 'Iiris' }
 
-const nothing = await queryMaybeOne<Pet>(client, sql`SELECT id, name FROM pet WHERE false`) 
+const nothing = await queryMaybeOne<Pet>(
+  client,
+  sql`SELECT id, name FROM pet WHERE false`
+)
 // => undefined
 ```
 
 If selecting a single column, it is unwrapped automatically.
 
 ```typescript
-const name = await queryMaybeOne<string>(pool, sql`SELECT name FROM pet WHERE id = 1`)
+const name = await queryMaybeOne<string>(
+  pool,
+  sql`SELECT name FROM pet WHERE id = 1`
+)
 // => 'Iiris'
 ```
 
