@@ -420,7 +420,7 @@ const petCount = await withTransactionMode(
   ```
 </details>
 
-Execute a set of queries within a savepoint.
+Execute a set of queries within a [savepoint](https://www.postgresql.org/docs/current/sql-savepoint.html).
 
 Start a savepoint and execute a set of queries within it. If the function
 does not throw an error, the savepoint is released. Returns the value
