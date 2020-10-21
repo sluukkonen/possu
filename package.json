@@ -1,6 +1,6 @@
 {
   "name": "possu",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A small companion library for node-postgres",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,7 +8,14 @@
   "author": "Sakumatti Luukkonen",
   "license": "MIT",
   "private": false,
-  "keywords": ["pg", "postgres", "promise", "tagged", "template", "strings"],
+  "keywords": [
+    "pg",
+    "postgres",
+    "promise",
+    "tagged",
+    "template",
+    "strings"
+  ],
   "engines": {
     "node": ">= 8"
   },
