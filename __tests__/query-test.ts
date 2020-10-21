@@ -7,6 +7,7 @@ import {
   AccessMode,
   IsolationLevel,
   TransactionMode,
+  withSavepoint,
   withTransaction,
   withTransactionLevel,
   withTransactionMode,
@@ -33,6 +34,11 @@ beforeEach(async () => {
     `INSERT INTO pet (name) VALUES ('Iiris'), ('Jean'), ('Senna')`
   )
 })
+
+const insertPet = (tx: PoolClient) =>
+  execute(tx, sql`INSERT INTO pet (name) VALUES ('Bethany')`)
+const getPetCount = (tx?: PoolClient) =>
+  query(tx ?? pool, sql`SELECT count(*) FROM pet`).then(Number)
 
 describe('validation', () => {
   it('checks that queries have been constructed with the `sql` tagged template string', async () => {
@@ -194,11 +200,6 @@ describe('execute()', () => {
 })
 
 describe('transaction()', () => {
-  const insertPet = (tx: PoolClient) =>
-    execute(tx, sql`INSERT INTO pet (name) VALUES ('Bethany')`)
-  const getPetCount = () =>
-    query(pool, sql`SELECT count(*) FROM pet`).then(Number)
-
   it('executes a set of queries in a transaction, commiting the results', async () => {
     await expect(getPetCount()).resolves.toBe(3)
     await withTransaction(pool, insertPet)
@@ -321,5 +322,126 @@ describe('withTransactionMode()', () => {
     await expect(
       withTransactionMode(invalidTransactionMode, pool, async (x) => x)
     ).rejects.toThrowError(new TypeError('Invalid access mode: null'))
+  })
+})
+
+describe('withSavepoint()', () => {
+  it('throws an error if called with a pool', async () => {
+    await expect(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      withSavepoint(pool as any, () => query(pool, sql`SELECT 1`))
+    ).rejects.toThrowError('SAVEPOINT can only be used in transaction blocks')
+  })
+  it('throws an error if called outside a transaction', async () => {
+    const client = await pool.connect()
+    try {
+      await expect(
+        withSavepoint(client, () => query(client, sql`SELECT 1`))
+      ).rejects.toThrowError('SAVEPOINT can only be used in transaction blocks')
+    } finally {
+      client.release()
+    }
+  })
+
+  it('returns the value from the function', async () => {
+    await expect(
+      withTransaction(pool, (tx) => withSavepoint(tx, async () => 'foo'))
+    ).resolves.toBe('foo')
+  })
+
+  it('does not blow up if throwing a non-Error', async () => {
+    await expect(
+      withTransaction(pool, (tx) =>
+        withSavepoint(tx, async () => {
+          throw null
+        })
+      )
+    ).rejects.toBeNull()
+  })
+
+  it('rolls back the savepoint if an error is thrown', async () => {
+    await withTransaction(pool, async (tx) => {
+      await insertPet(tx)
+      await withSavepoint(tx, async () => {
+        await insertPet(tx)
+        throw new Error('Boom!')
+      })
+        .then(() => {
+          throw new Error('Should not happen!')
+        })
+        .catch((err) => {
+          expect(err.message).toBe('Boom!')
+        })
+    })
+    expect(await getPetCount()).toBe(4)
+  })
+
+  it('rethrows an error after rolling back', async () => {
+    await expect(
+      withTransaction(pool, async (tx) => {
+        await insertPet(tx)
+        await withSavepoint(tx, async () => {
+          await insertPet(tx)
+          throw new Error('Boom!')
+        })
+      })
+    ).rejects.toThrowError(new Error('Boom!'))
+    expect(await getPetCount()).toBe(3)
+  })
+
+  it('can be nested (catch on 1st level)', async () => {
+    await withTransaction(pool, async (tx) => {
+      await insertPet(tx)
+      await withSavepoint(tx, async () => {
+        await insertPet(tx)
+        await withSavepoint(tx, async () => {
+          await insertPet(tx)
+          throw new Error('Boom!')
+        })
+      })
+        .then(() => {
+          throw new Error('Should not happen!')
+        })
+        .catch((err) => {
+          expect(err.message).toBe('Boom!')
+        })
+    })
+    expect(await getPetCount()).toBe(4)
+  })
+
+  it('can be nested (catch on 2nd level)', async () => {
+    await withTransaction(pool, async (tx) => {
+      await insertPet(tx)
+      await withSavepoint(tx, async () => {
+        await insertPet(tx)
+        await withSavepoint(tx, async () => {
+          await insertPet(tx)
+          throw new Error('Boom!')
+        })
+          .then(() => {
+            throw new Error('Should not happen!')
+          })
+          .catch((err) => {
+            expect(err.message).toBe('Boom!')
+          })
+      })
+    })
+    expect(await getPetCount()).toBe(5)
+  })
+
+  it('can be nested (no catch)', async () => {
+    await expect(
+      withTransaction(pool, async (tx) => {
+        await insertPet(tx)
+        await withSavepoint(tx, async () => {
+          await insertPet(tx)
+          await withSavepoint(tx, async () => {
+            await insertPet(tx)
+            throw new Error('Boom!')
+          })
+        })
+      })
+    ).rejects.toThrowError('Boom!')
+    expect(await getPetCount()).toBe(3)
   })
 })

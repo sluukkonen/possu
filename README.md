@@ -19,7 +19,6 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 ## TODO
 
 - More query builder features (e.g. arrays, unnesting)
-- Savepoints
 - Automatic transaction retrying (perhaps)
 
 ## Getting started
@@ -77,6 +76,7 @@ const newCount = await withTransaction(pool, async (tx) => {
   - [withTransaction](#withTransaction)
   - [withTransactionLevel](#withTransactionLevel)
   - [withTransactionMode](#withTransactionMode)
+  - [withSavepoint](#withSavepoint)
 
 ### Building queries
 
@@ -138,7 +138,7 @@ can be useful when combined with a library like
 [runtypes](https://github.com/pelotom/runtypes).
 
 When using TypeScript, the type of each result row is `unknown` by default,
-so you must either cast the result to the correct type or to use a row 
+so you must either cast the result to the correct type or to use a row
 parser that helps the TypeScript compiler infer the correct result type.
 
 ```typescript
@@ -407,4 +407,47 @@ const petCount = await withTransactionMode(
     return count
   }
 )
+```
+
+#### withSavepoint
+
+<details>
+  <summary>Show type signature</summary>
+  
+  ```typescript
+  withSavepoint<T>(tx: PoolClient,
+                   queries: () => PromiseLike<T>): Promise<T>
+  ```
+</details>
+
+Execute a set of queries within a savepoint.
+
+Start a savepoint and execute a set of queries within it. If the function
+does not throw an error, the savepoint is released. Returns the value
+returned from the function.
+
+If the function throws any kind of error, the savepoint is rolled back and
+the error is rethrown.
+
+May only be used within a transaction.
+
+```typescript
+const petCount = await withTransaction(pool, async (tx) => {
+  await execute(tx, sql`INSERT INTO pet (name) VALUES ('First')`)
+  return withSavepoint(tx, async () => {
+    await execute(tx, sql`INSERT INTO pet (name) VALUES ('Second')`)
+    const count = await queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
+    if (isEven(count)) {
+      throw new Error('There must be an odd number of pets!')
+    }
+    return count
+  }).catch((err) => {
+    if (err.message === 'There must be an odd number of pets!') {
+      // Let the first insert go through.
+      return queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
+    } else {
+      throw err
+    }
+  })
+})
 ```

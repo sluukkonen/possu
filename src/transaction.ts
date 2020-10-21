@@ -160,3 +160,38 @@ function getAccessMode(accessMode: AccessMode): string {
       throw new TypeError(`Invalid access mode: ${accessMode}`)
   }
 }
+
+/**
+ * Execute a set of queries within a savepoint.
+ *
+ * Start a savepoint and execute a set of queries within it. If the function
+ * does not throw an error, the savepoint is released. Returns the value
+ * returned from the function.
+ *
+ * If the function throws any kind of error, the savepoint is rolled back and
+ * the error is rethrown.
+ *
+ * May only be used within a transaction.
+ *
+ * @param tx A client belonging to a transaction.
+ * @param queries A set of queries to execute within the savepoint.
+ */
+export async function withSavepoint<T>(
+  tx: PoolClient,
+  queries: () => PromiseLike<T>
+): Promise<T> {
+  try {
+    await tx.query('SAVEPOINT possu_savepoint')
+    const result = await queries()
+    await tx.query('RELEASE SAVEPOINT possu_savepoint')
+    return result
+  } catch (err) {
+    // no_active_sql_transaction https://www.postgresql.org/docs/current/errcodes-appendix.html
+    if (err?.code !== '25P01') {
+      await tx.query(
+        'ROLLBACK TO SAVEPOINT possu_savepoint; RELEASE SAVEPOINT possu_savepoint'
+      )
+    }
+    throw err
+  }
+}
