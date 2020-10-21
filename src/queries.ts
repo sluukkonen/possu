@@ -106,10 +106,7 @@ export async function execute(
   return rowCount
 }
 
-async function send(
-  client: Pool | PoolClient,
-  sql: SqlQuery
-): Promise<QueryResult> {
+function send(client: Pool | PoolClient, sql: SqlQuery): Promise<QueryResult> {
   if (!(sql instanceof SqlQuery)) {
     throw new TypeError(
       'The query was not constructed with the `sql` tagged template literal'
