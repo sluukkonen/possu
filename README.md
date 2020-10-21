@@ -10,7 +10,6 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 
 - A Promise-based API, which aims to reduce common boilerplate
 - Write raw SQL queries with tagged template strings
-- Supports nested queries
 - Transaction handling
 - First-class TypeScript support
 - Not a framework. We let [node-postgres](https://node-postgres.com) handle the
