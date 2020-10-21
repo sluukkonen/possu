@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added a `sql.json` function for serializing values as JSON in queries.
+- Added a [`sql.json`](README.md#user-content-sqljson) function for serializing values as JSON in queries.
   Strictly speaking, this isn't necessary, since it is mostly just equivalent
   to `JSON.stringify`, but I'm including it since it might be more readable.
 - Added an optional row parser parameter to [`query`](README.md#query),
