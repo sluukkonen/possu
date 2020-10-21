@@ -14,7 +14,9 @@
     "promise",
     "tagged",
     "template",
-    "strings"
+    "strings",
+    "typescript",
+    "transaction"
   ],
   "engines": {
     "node": ">= 8"
