@@ -150,7 +150,7 @@ Returns all rows.
 
 ```typescript
 const pets = await query(pool, sql`SELECT * FROM pet`)
-// => [{ id: 1, name: 'Iiris' }, { id: 2: name: 'Jean' }]
+// => [{ id: 1, name: 'Iiris' }, { id: 2, name: 'Jean' }]
 ```
 
 If selecting a single column, each result row is unwrapped automatically.
