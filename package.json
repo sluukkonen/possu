@@ -11,6 +11,8 @@
   "keywords": [
     "pg",
     "postgres",
+    "postgresql",
+    "node-postgres",
     "promise",
     "tagged",
     "template",
