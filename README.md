@@ -60,15 +60,15 @@ const result = await queryOne(pool, sql`SELECT id, name FROM pig WHERE name = ${
 
 Create an SQL query.
 
-This is the only way to create queries in Possu. Other Possu functions check
-at runtime that the query has been created with `sql`.
+This is the only way to create queries in Possu. To prevent accidental SQL injections, other 
+Possu functions check at runtime that the query has been created with `sql`.
 
 ```typescript
 const query = sql`SELECT * FROM pet WHERE id = ${1}`
 // => { text: 'SELECT * FROM pet WHERE id = $1', values: [1] }
 ```
 
-Queries may also be nested. This is a powerful mechanism for code reuse.
+Queries may also be nested within other queries. This is a powerful mechanism for code reuse.
 
 ```typescript
 const query = sql`SELECT * FROM pet WHERE id = ${1}`
