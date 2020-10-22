@@ -150,7 +150,7 @@ Returns all rows.
 
 ```typescript
 const pets = await query(pool, sql`SELECT * FROM pet`)
-// => [{ id: 1, name: 'Iiris', id: 2: name: 'Jean' }]
+// => [{ id: 1, name: 'Iiris' }, { id: 2: name: 'Jean' }]
 ```
 
 If selecting a single column, each result row is unwrapped automatically.
@@ -281,12 +281,10 @@ the error is rethrown.
 
 ```typescript
 const petCount = await withTransaction(pool, async (tx) => {
-  await execute(tx, sql`INSERT INTO pet (name) VALUES ('Senna')`)
-  const count = await queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
-  if (count > 5) {
-    throw new Error('You have too many pets already!')
-  }
-  return count
+  await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'First'}')`)
+  await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'Second'}')`)
+  await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'Third'}')`)
+  return queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
 })
 ```
 
@@ -317,12 +315,10 @@ const petCount = await withTransactionLevel(
   IsolationLevel.Serializable,
   pool,
   async (tx) => {
-    await execute(tx, sql`INSERT INTO pet (name) VALUES ('Senna')`)
-    const count = await queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
-    if (count > 5) {
-      throw new Error('You have too many pets already!')
-    }
-    return count
+    await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'First'}')`)
+    await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'Second'}')`)
+    await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'Third'}')`)
+    return queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
   }
 )
 ```
@@ -365,12 +361,10 @@ const petCount = await withTransactionMode(
   },
   pool,
   async (tx) => {
-    await execute(tx, sql`INSERT INTO pet (name) VALUES ('Senna')`)
-    const count = await queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
-    if (count > 5) {
-      throw new Error('You have too many pets already!')
-    }
-    return count
+    await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'First'}')`)
+    await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'Second'}')`)
+    await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'Third'}')`)
+    return queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
   }
 )
 ```
@@ -398,22 +392,12 @@ the error is rethrown.
 May only be used within a transaction.
 
 ```typescript
-const petCount = await withTransaction(pool, async (tx) => {
+await withTransaction(pool, async (tx) => {
   await execute(tx, sql`INSERT INTO pet (name) VALUES ('First')`)
-  return withSavepoint(tx, async () => {
-    await execute(tx, sql`INSERT INTO pet (name) VALUES ('Second')`)
-    const count = await queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
-    if (isEven(count)) {
-      throw new Error('There must be an odd number of pets!')
-    }
-    return count
-  }).catch((err) => {
-    if (err.message === 'There must be an odd number of pets!') {
-      // Let the first insert go through.
-      return queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
-    } else {
-      throw err
-    }
+  return withSavepoint(tx, () =>
+    execute(tx, sql`INSERT INTO pet (name) VALUES ('Second')`)
+  ).catch((err) => {
+    // Let the first insert to through if the second one fails.
   })
 })
 ```
