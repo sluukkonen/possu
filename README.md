@@ -1,8 +1,8 @@
 # Possu 🐖
 
-![CI](https://github.com/sluukkonen/possu/workflows/CI/badge.svg)
-![Dependencies](https://img.shields.io/david/sluukkonen/possu)
-![NPM](https://img.shields.io/npm/v/possu)
+[![CI](https://github.com/sluukkonen/possu/workflows/CI/badge.svg)](https://github.com/sluukkonen/possu/actions?query=workflow%3ACI)
+[![Dependencies](https://img.shields.io/david/sluukkonen/possu)](https://david-dm.org/sluukkonen/possu)
+[![NPM](https://img.shields.io/npm/v/possu)](https://www.npmjs.com/package/possu)
 
 A small companion library for [node-postgres](https://node-postgres.com/).
 
