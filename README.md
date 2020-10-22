@@ -58,6 +58,14 @@ const result = await queryOne(pool, sql`SELECT id, name FROM pig WHERE name = ${
 
 #### sql
 
+<details>
+  <summary>Show type signature</summary>
+  
+  ```typescript
+  sql(parts: TemplateStringsArray, ...values: unknown[]): SqlQuery
+  ```
+</details>
+
 Create an SQL query.
 
 This is the only way to create queries in Possu. To prevent accidental SQL injections, other
@@ -78,6 +86,14 @@ const exists = sql`SELECT exists(${query})`
 
 #### sql.identifier
 
+<details>
+  <summary>Show type signature</summary>
+  
+  ```typescript
+  identifier(name: string): Identifier
+  ```
+</details>
+
 Escape an SQL
 [identifier](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS)
 to be used in a query. It can be used to create queries which are
@@ -94,6 +110,14 @@ sql`SELECT * FROM pet ORDER BY ${sql.identifier('name')} DESC`
 ```
 
 #### sql.json
+
+<details>
+  <summary>Show type signature</summary>
+  
+  ```typescript
+  json(value: unknown): string
+  ```
+</details>
 
 Serialize a value as JSON to be used in a query.
 

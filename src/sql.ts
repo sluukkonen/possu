@@ -10,7 +10,7 @@ class Identifier {
 
 /** The query builder interface of Possu. */
 interface Sql {
-  (parts: TemplateStringsArray, ...originalValues: readonly unknown[]): SqlQuery
+  (parts: TemplateStringsArray, ...values: readonly unknown[]): SqlQuery
 
   /**
    * Escape an SQL
@@ -37,8 +37,9 @@ interface Sql {
 /**
  * Create an SQL query.
  *
- * This is the only way to create queries in Possu. Other Possu functions check
- * that the query has been created with `sql`.
+ * This is the only way to create queries in Possu. To prevent accidental SQL
+ * injections, other Possu functions check at runtime that the query has been
+ * created with `sql`.
  *
  * @example
  * const query = sql`SELECT * FROM pet WHERE id = ${1}`
