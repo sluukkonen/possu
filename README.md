@@ -60,7 +60,7 @@ const result = await queryOne(pool, sql`SELECT id, name FROM pig WHERE name = ${
 
 Create an SQL query.
 
-This is the only way to create queries in Possu. To prevent accidental SQL injections, other 
+This is the only way to create queries in Possu. To prevent accidental SQL injections, other
 Possu functions check at runtime that the query has been created with `sql`.
 
 ```typescript
@@ -149,14 +149,14 @@ Execute a `SELECT` or other query that returns zero or more rows.
 Returns all rows.
 
 ```typescript
-const pets = await query<Pet>(pool, sql`SELECT * FROM pet`)
+const pets = await query(pool, sql`SELECT * FROM pet`)
 // => [{ id: 1, name: 'Iiris', id: 2: name: 'Jean' }]
 ```
 
 If selecting a single column, each result row is unwrapped automatically.
 
 ```typescript
-const names = await query<string>(client, sql`SELECT name FROM pet`)
+const names = await query(client, sql`SELECT name FROM pet`)
 // => ['Iiris', 'Jean']
 ```
 
@@ -179,26 +179,19 @@ Returns the first row.
 - Throws a `ResultError` if query doesn't return exactly one row.
 
 ```typescript
-const pet = await queryOne<Pet>(
-  pool,
-  sql`SELECT id, name FROM pet WHERE id = 1`
-)
+const pet = await queryOne(pool, sql`SELECT id, name FROM pet WHERE id = 1`)
 // => { id: 1, name: 'Iiris' }
 ```
 
 If selecting a single column, it is unwrapped automatically.
 
 ```typescript
-const name = await queryOne<string>(
-  client,
-  sql`SELECT name FROM pet WHERE id = 1`
-)
+const name = await queryOne(client, sql`SELECT name FROM pet WHERE id = 1`)
 // => 'Iiris'
 ```
 
 You can transform the result with a custom row parser. Here we transform the
 count from a string to a number by using the built-in Number constructor.
-With it, we may also drop the explicit cast.
 
 ```typescript
 const count = await queryOne(client, sql`SELECT count(*) FROM pet`, Number)
@@ -224,13 +217,13 @@ Returns the first row or `undefined`.
 - Throws a `ResultError` if query returns more than 1 row.
 
 ```typescript
-const pet = await queryMaybeOne<Pet>(
+const pet = await queryMaybeOne(
   pool,
   sql`SELECT id, name FROM pet WHERE id = 1`
 )
 // => { id: 1, name: 'Iiris' }
 
-const nothing = await queryMaybeOne<Pet>(
+const nothing = await queryMaybeOne(
   client,
   sql`SELECT id, name FROM pet WHERE false`
 )
@@ -240,10 +233,7 @@ const nothing = await queryMaybeOne<Pet>(
 If selecting a single column, it is unwrapped automatically.
 
 ```typescript
-const name = await queryMaybeOne<string>(
-  pool,
-  sql`SELECT name FROM pet WHERE id = 1`
-)
+const name = await queryMaybeOne(pool, sql`SELECT name FROM pet WHERE id = 1`)
 // => 'Iiris'
 ```
 
