@@ -28,37 +28,14 @@ $ npm install possu
 ```
 
 ```typescript
-import { execute, queryOne, sql, withTransaction } from 'possu'
+import { query, sql } from 'possu'
 import { Pool } from 'pg'
 
-// To start off, you'll need a connection pool from `pg`.
 const pool = new Pool({ ... })
 
-// Each possu query function accepts a connection pool and a query created with
-// the `sql` tagged template string as an argument.
-const name = await queryOne(pool, sql`SELECT name FROM pet WHERE id = ${id}`)
-
-// Instead of a pool, a client checked out from a pool is also accepted.
-const client = await pool.connect()
-try {
-  const count = await queryOne(client, sql`SELECT count(*) FROM pet`)
-} finally {
-  client.release()
-}
-
-// Usually it is best to work in terms of a pool, so you don't have to check out
-// and release the client yourself. However, when working with transactions,
-// using client is necessary. Thankfully, Possu includes functions that do the
-// heavy lifting for you.
-const newCount = await withTransaction(pool, async (tx) => {
-  // Here `tx` is a client checked out from the pool that the current
-  // transaction is scoped to. The client is released back to the pool after the
-  // transaction ends.
-  await execute(tx, sql`INSERT INTO pet (name) VALUES(${'Napoleon'})`)
-  // Here we're using a custom row parser to convert the count from a string to
-  // a number.
-  return queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
-})
+const names = ['Napoleon', 'Squealer', 'Minimus']
+const pigs = await query(pool, sql`SELECT id, name FROM pig WHERE name = ANY(${names})`)
+// => [{ id: 1, name: 'Napoleon' }, { id: 2, name: 'Squealer' }, { id: 3, name: 'Minimus' }]
 ```
 
 ## API
