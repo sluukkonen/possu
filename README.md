@@ -28,14 +28,13 @@ $ npm install possu
 ```
 
 ```typescript
-import { query, sql } from 'possu'
+import { queryOne, sql } from 'possu'
 import { Pool } from 'pg'
 
 const pool = new Pool({ ... })
 
-const names = ['Napoleon', 'Squealer', 'Minimus']
-const pigs = await query(pool, sql`SELECT id, name FROM pig WHERE name = ANY(${names})`)
-// => [{ id: 1, name: 'Napoleon' }, { id: 2, name: 'Squealer' }, { id: 3, name: 'Minimus' }]
+const result = await queryOne(pool, sql`SELECT id, name FROM pig WHERE name = ${'Napoleon'}`)
+// => { id: 1, name: 'Napoleon' }
 ```
 
 ## API
