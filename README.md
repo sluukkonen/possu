@@ -418,10 +418,11 @@ May only be used within a transaction.
 ```typescript
 await withTransaction(pool, async (tx) => {
   await execute(tx, sql`INSERT INTO pet (name) VALUES ('First')`)
-  return withSavepoint(tx, () =>
-    execute(tx, sql`INSERT INTO pet (name) VALUES ('Second')`)
-  ).catch((err) => {
-    // Let the first insert to through if the second one fails.
+  return withSavepoint(tx, async () => {
+    await execute(tx, sql`INSERT INTO pet (name) VALUES ('Second')`)
+    await execute(tx, sql`INSERT INTO pet (name) VALUES ('Third')`)
+  }).catch((err) => {
+    // Let the first insert to through if the second or third one fails.
   })
 })
 ```
