@@ -10,7 +10,7 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 
 - A Promise-based API, which aims to reduce common boilerplate
 - Write raw SQL queries with tagged template strings
-- Transaction handling
+- Transaction and savepoint handling
 - First-class TypeScript support
 - Not a framework. We let [node-postgres](https://node-postgres.com) handle the
   nitty-gritty bits like connection pooling, so you can integrate Possu easily to
