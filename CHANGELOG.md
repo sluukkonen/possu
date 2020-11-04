@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Added automatic transaction retrying in
+  [`withTransaction`](README.md#withTransaction) for PostgreSQL's `40001`
+  (serialization failure) and `40P01` (deadlock detected) error codes.
+- Added an optional options object to
+  [`withTransaction`](README.md#withTransaction), which can be used to
+  configure the access mode, isolation level and retry logic of a transaction.
+
+### Removed
+
+- `withTransactionMode` and `withTransactionLevel` have been removed, since
+  [`withTransaction`](README.md#withTransaction) now encompasses
+  their functionality.
+
 ## [0.7.0] - 2020-10-22
 
 ### Changed

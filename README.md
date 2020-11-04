@@ -10,7 +10,8 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 
 - A Promise-based API, which aims to reduce common boilerplate
 - Write raw SQL queries with tagged template strings
-- Transaction and savepoint handling
+- Transaction and savepoint handling, including retrying in case of
+  serialization failures and deadlocks.
 - First-class TypeScript support
 - Not a framework. We let [node-postgres](https://node-postgres.com) handle the
   nitty-gritty bits like connection pooling, so you can integrate Possu easily to
@@ -19,7 +20,6 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 ## Future plans
 
 - More query builder features (e.g. arrays, unnesting)
-- Automatic transaction retrying (perhaps)
 
 ## Getting started
 
@@ -50,8 +50,6 @@ const result = await queryOne(pool, sql`SELECT id, name FROM pig WHERE name = ${
   - [execute](#execute)
 - [Transaction handling](#transaction-handling)
   - [withTransaction](#withTransaction)
-  - [withTransactionLevel](#withTransactionLevel)
-  - [withTransactionMode](#withTransactionMode)
   - [withSavepoint](#withSavepoint)
 
 ### Building queries
@@ -290,18 +288,32 @@ const rowCount = await execute(pool, sql`INSERT INTO pet (name) VALUES ('Fae')`)
   
   ```typescript
   withTransaction<T>(client: Pool | PoolClient,
-                     queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>
+                     queries: (tx: PoolClient) => PromiseLike<T>,
+                     options?: TransactionOptions): Promise<T>
   ```
 </details>
 
 Execute a set of queries within a transaction.
 
 Start a transaction and execute a set of queries within it. If the function
-does not throw an error, the transaction is committed. Returns the value
-returned from the function.
+does not throw an error, the transaction is committed and its return value is
+returned.
 
-If the function throws any kind of error, the transaction is rolled back and
-the error is rethrown.
+If the function throws a non-retryable error, the transaction is rolled back
+and the error is rethrown.
+
+If the function throws a retryable error, the transaction is rolled back and
+retried up to 2 or `maxRetries` times. By default, PostgreSQL errors codes
+`40001` (serialization failure) and `40P01` (deadlock detected) are
+considered to be retryable, but you may customize the behavior by supplying a
+custom `shouldRetry` predicate.
+
+You may also configure the [access
+mode](https://www.postgresql.org/docs/current/sql-set-transaction.html) and
+[isolation
+level](https://www.postgresql.org/docs/current/transaction-iso.html) of the
+transaction by supplying the `accessMode` and `isolationLevel` options,
+respectively.
 
 ```typescript
 const petCount = await withTransaction(pool, async (tx) => {
@@ -310,87 +322,6 @@ const petCount = await withTransaction(pool, async (tx) => {
   await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'Third'}')`)
   return queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
 })
-```
-
-#### withTransactionLevel
-
-<details>
-  <summary>Show type signature</summary>
-  
-  ```typescript
-  withTransactionLevel<T>(isolationLevel: IsolationLevel,
-                          client: Pool | PoolClient,
-                          queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>
-  ```
-</details>
-
-Execute a set of queries within a transaction, using the given [isolation
-level](https://www.postgresql.org/docs/current/transaction-iso.html).
-
-The isolation level may be either:
-
-- `IsolationLevel.Default`
-- `IsolationLevel.Serializable`
-- `IsolationLevel.RepeatableRead`
-- `IsolationLevel.ReadCommitted`
-
-```typescript
-const petCount = await withTransactionLevel(
-  IsolationLevel.Serializable,
-  pool,
-  async (tx) => {
-    await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'First'}')`)
-    await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'Second'}')`)
-    await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'Third'}')`)
-    return queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
-  }
-)
-```
-
-#### withTransactionMode
-
-<details>
-  <summary>Show type signature</summary>
-  
-  ```typescript
-  withTransactionMode<T>(transactionMode: TransactionMode,
-                         client: Pool | PoolClient,
-                         queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>
-  ```
-</details>
-
-Execute a set of queries within a transaction, using the given [isolation
-level](https://www.postgresql.org/docs/current/transaction-iso.html) and
-[access
-mode](https://www.postgresql.org/docs/current/sql-set-transaction.html).
-
-The isolation level may be either:
-
-- `IsolationLevel.Default`
-- `IsolationLevel.Serializable`
-- `IsolationLevel.RepeatableRead`
-- `IsolationLevel.ReadCommitted`
-
-The access mode may be either:
-
-- `AccessMode.Default`
-- `AccessMode.ReadWrite`
-- `AccessMode.ReadOnly`
-
-```typescript
-const petCount = await withTransactionMode(
-  {
-    isolationLevel: IsolationLevel.Serializable,
-    accessMode: AccessMode.ReadWrite,
-  },
-  pool,
-  async (tx) => {
-    await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'First'}')`)
-    await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'Second'}')`)
-    await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'Third'}')`)
-    return queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
-  }
-)
 ```
 
 #### withSavepoint
