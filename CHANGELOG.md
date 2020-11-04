@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added an optional options object to
   [`withTransaction`](README.md#withTransaction), which can be used to
   configure the access mode, isolation level and retry logic of a transaction.
+- The set of queries in [`withSavepoint`](README.md#withSavepoint) now
+  receives a `PoolClient` as an argument. With the change, one may supply the
+  same function to both [`withTransaction`](README.md#withTransaction) and
+  [`withSavepoint`](README.md#withSavepoint).
 
 ### Removed
 

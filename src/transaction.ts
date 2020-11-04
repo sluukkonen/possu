@@ -247,11 +247,11 @@ function isRetryableError(err: Error) {
  */
 export async function withSavepoint<T>(
   tx: PoolClient,
-  queries: () => PromiseLike<T>
+  queries: (tx: PoolClient) => PromiseLike<T>
 ): Promise<T> {
   try {
     await tx.query('SAVEPOINT possu_savepoint')
-    const result = await queries()
+    const result = await queries(tx)
     await tx.query('RELEASE SAVEPOINT possu_savepoint')
     return result
   } catch (err) {

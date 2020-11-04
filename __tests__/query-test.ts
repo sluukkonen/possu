@@ -419,7 +419,7 @@ describe('withSavepoint()', () => {
   it('rolls back the savepoint if an error is thrown', async () => {
     await withTransaction(pool, async (tx) => {
       await insertPet(tx)
-      await withSavepoint(tx, async () => {
+      await withSavepoint(tx, async (tx) => {
         await insertPet(tx)
         throw new Error('Boom!')
       })
@@ -437,7 +437,7 @@ describe('withSavepoint()', () => {
     await expect(
       withTransaction(pool, async (tx) => {
         await insertPet(tx)
-        await withSavepoint(tx, async () => {
+        await withSavepoint(tx, async (tx) => {
           await insertPet(tx)
           throw new Error('Boom!')
         })
@@ -449,9 +449,9 @@ describe('withSavepoint()', () => {
   it('can be nested (catch on 1st level)', async () => {
     await withTransaction(pool, async (tx) => {
       await insertPet(tx)
-      await withSavepoint(tx, async () => {
+      await withSavepoint(tx, async (tx) => {
         await insertPet(tx)
-        await withSavepoint(tx, async () => {
+        await withSavepoint(tx, async (tx) => {
           await insertPet(tx)
           throw new Error('Boom!')
         })
@@ -469,9 +469,9 @@ describe('withSavepoint()', () => {
   it('can be nested (catch on 2nd level)', async () => {
     await withTransaction(pool, async (tx) => {
       await insertPet(tx)
-      await withSavepoint(tx, async () => {
+      await withSavepoint(tx, async (tx) => {
         await insertPet(tx)
-        await withSavepoint(tx, async () => {
+        await withSavepoint(tx, async (tx) => {
           await insertPet(tx)
           throw new Error('Boom!')
         })
@@ -490,9 +490,9 @@ describe('withSavepoint()', () => {
     await expect(
       withTransaction(pool, async (tx) => {
         await insertPet(tx)
-        await withSavepoint(tx, async () => {
+        await withSavepoint(tx, async (tx) => {
           await insertPet(tx)
-          await withSavepoint(tx, async () => {
+          await withSavepoint(tx, async (tx) => {
             await insertPet(tx)
             throw new Error('Boom!')
           })
