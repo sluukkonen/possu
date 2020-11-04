@@ -3,14 +3,13 @@ import { ResultError } from '../src/errors'
 import { execute, query, queryMaybeOne, queryOne } from '../src/queries'
 import { sql } from '../src/sql'
 import { SqlQuery } from '../src/SqlQuery'
+import { DatabaseError } from 'pg-protocol'
+import { MessageName } from 'pg-protocol/dist/messages'
 import {
   AccessMode,
   IsolationLevel,
-  TransactionMode,
   withSavepoint,
   withTransaction,
-  withTransactionLevel,
-  withTransactionMode,
 } from '../src/transaction'
 
 let pool: Pool
@@ -251,25 +250,105 @@ describe('transaction()', () => {
       client.release()
     }
   })
-})
 
-describe('withTransactionLevel()', () => {
-  it.each([
-    [IsolationLevel.Default, 'read committed'],
-    [IsolationLevel.ReadCommitted, 'read committed'],
-    [IsolationLevel.RepeatableRead, 'repeatable read'],
-    [IsolationLevel.Serializable, 'serializable'],
-  ])(
-    'sets the correct isolation level (%s -> %s)',
-    async (isolationLevel, result) => {
-      await withTransactionLevel(isolationLevel, pool, async (tx) => {
-        expect(await queryOne(tx, sql`SHOW transaction_isolation`)).toBe(result)
+  describe('validation', () => {
+    it('validates isolationLevel', async () => {
+      await expect(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        withTransaction(pool, async (x) => x, { isolationLevel: null as any })
+      ).rejects.toThrowError(new TypeError('Invalid isolation level: null'))
+    })
+
+    it('validates accessMode', async () => {
+      await expect(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        withTransaction(pool, async (x) => x, { accessMode: null as any })
+      ).rejects.toThrowError(new TypeError('Invalid access mode: null'))
+    })
+
+    it('validates maxRetries', async () => {
+      await expect(
+        withTransaction(pool, async (x) => x, { maxRetries: -1 })
+      ).rejects.toThrowError(
+        new TypeError('maxRetries must be a non-negative integer!')
+      )
+    })
+
+    it('validates shouldRetry', async () => {
+      await expect(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        withTransaction(pool, async (x) => x, { shouldRetry: 'yes' as any })
+      ).rejects.toThrowError(new TypeError('shouldRetry must be a function!'))
+    })
+  })
+
+  describe('retrying', () => {
+    const serializationError = new DatabaseError('', 0, MessageName.error)
+    serializationError.code = '40001'
+
+    const deadlockDetectedError = new DatabaseError('', 0, MessageName.error)
+    deadlockDetectedError.code = '40P01'
+
+    it.each([[serializationError], [deadlockDetectedError]])(
+      'retries queries upto 2 times for retryable errors',
+      async (error) => {
+        const fn = jest.fn(async (tx: PoolClient) => {
+          await insertPet(tx)
+          throw error
+        })
+        await expect(withTransaction(pool, fn)).rejects.toThrowError(error)
+        await expect(getPetCount()).resolves.toBe(3)
+        expect(fn).toHaveBeenCalledTimes(3)
+      }
+    )
+
+    it('retries queries upto maxRetries times', async () => {
+      const fn = jest.fn(async (tx: PoolClient) => {
+        await insertPet(tx)
+        throw serializationError
       })
-    }
-  )
-})
+      await expect(
+        withTransaction(pool, fn, { maxRetries: 10 })
+      ).rejects.toThrowError(serializationError)
+      await expect(getPetCount()).resolves.toBe(3)
+      expect(fn).toHaveBeenCalledTimes(11)
+    })
 
-describe('withTransactionMode()', () => {
+    it('does not retry if maxRetries is 0', async () => {
+      const fn = jest.fn(async (tx: PoolClient) => {
+        await insertPet(tx)
+        throw serializationError
+      })
+      await expect(
+        withTransaction(pool, fn, { maxRetries: 0 })
+      ).rejects.toThrowError(serializationError)
+      await expect(getPetCount()).resolves.toBe(3)
+      expect(fn).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not retry on non-retryable errors', async () => {
+      const fn = jest.fn(async (tx: PoolClient) => {
+        await insertPet(tx)
+        throw new Error('Boom!')
+      })
+      await expect(withTransaction(pool, fn)).rejects.toThrowError('Boom!')
+      await expect(getPetCount()).resolves.toBe(3)
+      expect(fn).toHaveBeenCalledTimes(1)
+    })
+
+    it('supports custom shouldRetry predicates', async () => {
+      const fn = jest.fn(async (tx: PoolClient) => {
+        await insertPet(tx)
+        throw new Error('Boom!')
+      })
+      await expect(
+        withTransaction(pool, fn, { shouldRetry: () => true })
+      ).rejects.toThrowError('Boom!')
+      await expect(getPetCount()).resolves.toBe(3)
+      expect(fn).toHaveBeenCalledTimes(3)
+    })
+  })
+
   describe.each([
     [IsolationLevel.Default, 'read committed'],
     [IsolationLevel.ReadCommitted, 'read committed'],
@@ -285,8 +364,7 @@ describe('withTransactionMode()', () => {
       ])(
         'and the correct access mode (%s -> %s)',
         async (accessMode, accessModeResult) => {
-          await withTransactionMode(
-            { isolationLevel, accessMode: accessMode },
+          await withTransaction(
             pool,
             async (tx) => {
               expect(await queryOne(tx, sql`SHOW transaction_isolation`)).toBe(
@@ -295,34 +373,13 @@ describe('withTransactionMode()', () => {
               expect(await queryOne(tx, sql`SHOW transaction_read_only`)).toBe(
                 accessModeResult
               )
-            }
+            },
+            { isolationLevel, accessMode: accessMode }
           )
         }
       )
     }
   )
-
-  it('validates the isolation level', async () => {
-    const invalidTransactionMode: TransactionMode = {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      isolationLevel: null as any,
-      accessMode: AccessMode.Default,
-    }
-    await expect(
-      withTransactionMode(invalidTransactionMode, pool, async (x) => x)
-    ).rejects.toThrowError(new TypeError('Invalid isolation level: null'))
-  })
-
-  it('validates the access mode', async () => {
-    const invalidTransactionMode: TransactionMode = {
-      isolationLevel: IsolationLevel.Default,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      accessMode: null as any,
-    }
-    await expect(
-      withTransactionMode(invalidTransactionMode, pool, async (x) => x)
-    ).rejects.toThrowError(new TypeError('Invalid access mode: null'))
-  })
 })
 
 describe('withSavepoint()', () => {
