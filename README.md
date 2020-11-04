@@ -296,8 +296,7 @@ const rowCount = await execute(pool, sql`INSERT INTO pet (name) VALUES ('Fae')`)
 Execute a set of queries within a transaction.
 
 Start a transaction and execute a set of queries within it. If the function
-does not throw an error, the transaction is committed and its return value is
-returned.
+does not throw an error, the transaction is committed.
 
 If the function throws a non-retryable error, the transaction is rolled back
 and the error is rethrown.
@@ -338,8 +337,7 @@ const petCount = await withTransaction(pool, async (tx) => {
 Execute a set of queries within a [savepoint](https://www.postgresql.org/docs/current/sql-savepoint.html).
 
 Start a savepoint and execute a set of queries within it. If the function
-does not throw an error, the savepoint is released. Returns the value
-returned from the function.
+does not throw an error, the savepoint is released.
 
 If the function throws any kind of error, the savepoint is rolled back and
 the error is rethrown.
