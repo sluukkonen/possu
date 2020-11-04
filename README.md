@@ -330,7 +330,7 @@ const petCount = await withTransaction(pool, async (tx) => {
   
   ```typescript
   withSavepoint<T>(tx: PoolClient,
-                   queries: () => PromiseLike<T>): Promise<T>
+                   queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>
   ```
 </details>
 
