@@ -41,10 +41,9 @@ const getPetCount = (tx?: PoolClient) =>
 
 describe('validation', () => {
   it('checks that queries have been constructed with the `sql` tagged template string', async () => {
-    const fns: Array<(
-      client: Pool | PoolClient,
-      query: SqlQuery
-    ) => Promise<unknown>> = [query, queryOne, queryMaybeOne, execute]
+    const fns: Array<
+      (client: Pool | PoolClient, query: SqlQuery) => Promise<unknown>
+    > = [query, queryOne, queryMaybeOne, execute]
     const parameters = [
       'SELECT * FROM pet',
       { text: 'SELECT * FROM pet', values: [] },
