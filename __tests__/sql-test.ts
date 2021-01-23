@@ -98,3 +98,56 @@ describe('sql.json()', () => {
     })
   })
 })
+
+describe('sql.values()', () => {
+  it('constructs an SQL values list', () => {
+    expect(
+      sql`SELECT a, b FROM (${sql.values([{ a: 1, b: 2 }])})`
+    ).toMatchObject({
+      text: 'SELECT a, b FROM (VALUES ($1, $2))',
+      values: [1, 2],
+    })
+  })
+
+  it('supports constructing a values list with multiple items', () => {
+    expect(
+      sql`SELECT a, b FROM (${sql.values([
+        { a: 1, b: 2 },
+        { a: 3, b: 4 },
+      ])})`
+    ).toMatchObject({
+      text: 'SELECT a, b FROM (VALUES ($1, $2), ($3, $4))',
+      values: [1, 2, 3, 4],
+    })
+  })
+
+  it('supports customizing the keys used', () => {
+    expect(
+      sql`SELECT a FROM (${sql.values([{ a: 1, b: 2 }], 'a')})`
+    ).toMatchObject({
+      text: 'SELECT a FROM (VALUES ($1))',
+      values: [1],
+    })
+  })
+
+  it('throws an error if the array is empty', () => {
+    expect(() => sql.values([])).toThrowError(
+      new Error('The objects array must be non-empty')
+    )
+  })
+
+  it('throws an error if the first object is empty', () => {
+    expect(() => sql.values([{}])).toThrowError(
+      new Error('The first object given to `sql.values` must not be empty')
+    )
+  })
+
+  it('throws an error if objects is not an array of objects', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect(() => sql.values(null as any)).toThrowError(
+      new TypeError(
+        'The first argument to `sql.values` must be an array of objects'
+      )
+    )
+  })
+})

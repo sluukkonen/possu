@@ -43,6 +43,7 @@ const result = await queryOne(pool, sql`SELECT id, name FROM pig WHERE name = ${
   - [sql](#sql)
   - [sql.identifier](#user-content-sqlidentifier)
   - [sql.json](#user-content-sqljson)
+  - [sql.values](#user-content-sqlvalues)
 - [Executing queries](#executing-queries)
   - [query](#query)
   - [queryOne](#queryOne)
@@ -122,6 +123,42 @@ Serialize a value as JSON to be used in a query.
 ```typescript
 sql`SELECT * FROM jsonb_array_elements(${sql.json([1, 2, 3])})`
 // => { text : 'SELECT * FROM jsonb_array_elements($1)', values: ['[1,2,3]'] }
+```
+
+#### sql.values
+
+<details>
+  <summary>Show type signature</summary>
+  
+  ```typescript
+  values<T extends object, K extends keyof T>(objects: T[], ...keys: K[]): ValuesList<T, K>
+  ```
+</details>
+
+Construct a [VALUES
+list](https://www.postgresql.org/docs/current/queries-values.html) from a
+non-empty array of objects. Useful as a data source to `INSERT` queries or
+when writing complex subqueries.
+
+```typescript
+sql`INSERT INTO pet (name, age) ${sql.values([
+  { name: 'Iiris', age: 5 },
+  { name: 'Napoleon', age: 11 },
+])}`
+// => { text: 'INSERT INTO pet (name, age) VALUES ($1, $2), ($3, $4)', values: ['Iiris', 5, 'Napoleon', 11] }
+```
+
+You can also customize the set of keys used.
+
+```typescript
+sql`INSERT INTO pet (name) ${sql.values(
+  [
+    { name: 'Iiris', age: 5 },
+    { name: 'Napoleon', age: 11 },
+  ],
+  'name'
+)}`
+// => { text: 'INSERT INTO pet (name) VALUES ($1), ($2)', values: ['Iiris', 'Napoleon'] }
 ```
 
 ### Executing queries
