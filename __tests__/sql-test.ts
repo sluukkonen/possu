@@ -132,7 +132,7 @@ describe('sql.values()', () => {
 
   it('throws an error if the array is empty', () => {
     expect(() => sql.values([])).toThrowError(
-      new Error('The objects array must be non-empty')
+      new Error('The first argument to `sql.values` must be non-empty')
     )
   })
 

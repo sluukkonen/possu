@@ -143,7 +143,7 @@ sql.values = function values(objects, ...keys) {
       'The first argument to `sql.values` must be an array of objects'
     )
   } else if (objects.length === 0) {
-    throw new Error('The objects array must be non-empty')
+    throw new Error('The first argument to `sql.values` must be non-empty')
   }
 
   if (keys.length === 0) {
