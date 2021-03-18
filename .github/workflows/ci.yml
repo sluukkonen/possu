@@ -36,4 +36,19 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: yarn --frozen-lockfile
       - run: yarn test
+
+  lint:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 14
+        uses: actions/setup-node@v2.1.5
+        with:
+          node-version: 14.x
+      - name: Restore cache
+        uses: actions/cache@v2.1.4
+        with:
+          path: node_modules
+          key: yarn-14.x-${{ hashFiles('**/yarn.lock') }}
+      - run: yarn --frozen-lockfile
       - run: yarn lint
