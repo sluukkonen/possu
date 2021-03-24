@@ -57,13 +57,10 @@ const result = await queryOne(pool, sql`SELECT id, name FROM pig WHERE name = ${
 
 #### sql
 
-<details>
-  <summary>Show type signature</summary>
-  
-  ```typescript
-  sql(parts: TemplateStringsArray, ...values: unknown[]): SqlQuery
-  ```
-</details>
+```typescript
+(parts: TemplateStringsArray, ...values: unknown[]) => SqlQuery
+ ```
+
 
 Create an SQL query.
 
@@ -85,13 +82,9 @@ const exists = sql`SELECT exists(${query})`
 
 #### sql.identifier
 
-<details>
-  <summary>Show type signature</summary>
-  
-  ```typescript
-  identifier(name: string): Identifier
-  ```
-</details>
+```typescript
+(name: string) => Identifier
+ ```
 
 Escape an SQL
 [identifier](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS)
@@ -110,13 +103,9 @@ sql`SELECT * FROM pet ORDER BY ${sql.identifier('name')} DESC`
 
 #### sql.json
 
-<details>
-  <summary>Show type signature</summary>
-  
-  ```typescript
-  json(value: unknown): string
-  ```
-</details>
+```typescript
+(value: unknown) => string
+ ```
 
 Serialize a value as JSON to be used in a query.
 
@@ -127,12 +116,9 @@ sql`SELECT * FROM jsonb_array_elements(${sql.json([1, 2, 3])})`
 
 #### sql.values
 
-<details>
-  <summary>Show type signature</summary>
-  
-  ```typescript
-  values<T extends object, K extends keyof T>(objects: T[], ...keys: K[]): ValuesList<T, K>
-  ```
+```typescript
+<T extends object, K extends keyof T>(objects: T[], ...keys: K[]) => ValuesList<T, K>
+ ```
 </details>
 
 Construct a [VALUES
@@ -193,15 +179,9 @@ const pets = await query(client, sql`SELECT * FROM pet`, Pet.check)
 
 #### query
 
-<details>
-  <summary>Show type signature</summary>
-  
-  ```typescript
-  query<T>(client: Pool | PoolClient,
-           query: SqlQuery,
-           rowParser?: (row: unknown) => T): Promise<T[]>
-  ```
-</details>
+```typescript
+<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T) => Promise<T[]>
+ ```
 
 Execute a `SELECT` or other query that returns zero or more rows.
 
@@ -221,15 +201,9 @@ const names = await query(client, sql`SELECT name FROM pet`)
 
 #### queryOne
 
-<details>
-  <summary>Show type signature</summary>
-  
-  ```typescript
-  queryOne<T>(client: Pool | PoolClient,
-              query: SqlQuery,
-              rowParser?: (row: unknown) => T): Promise<T>
-  ```
-</details>
+```typescript
+<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T) => Promise<T>
+ ```
 
 Execute a `SELECT` or other query that returns exactly one row.
 
@@ -259,15 +233,9 @@ const count = await queryOne(client, sql`SELECT count(*) FROM pet`, Number)
 
 #### queryMaybeOne
 
-<details>
-  <summary>Show type signature</summary>
-  
-  ```typescript
-  queryMaybeOne<T>(client: Pool | PoolClient,
-                   query: SqlQuery,
-                   rowParser?: (row: unknown) => T): Promise<T | undefined>
-  ```
-</details>
+```typescript
+<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T) => Promise<T | undefined>
+```
 
 Execute a `SELECT` or other query that returns zero or one rows.
 
@@ -298,14 +266,9 @@ const name = await queryMaybeOne(pool, sql`SELECT name FROM pet WHERE id = 1`)
 
 #### execute
 
-<details>
-  <summary>Show type signature</summary>
-  
-  ```typescript
-  execute(client: Pool | PoolClient,
-          query: SqlQuery): Promise<number>
-  ```
-</details>
+ ```typescript
+(client: Pool | PoolClient, query: SqlQuery) => Promise<number>
+```
 
 Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to return any rows.
 
@@ -320,15 +283,9 @@ const rowCount = await execute(pool, sql`INSERT INTO pet (name) VALUES ('Fae')`)
 
 #### withTransaction
 
-<details>
-  <summary>Show type signature</summary>
-  
   ```typescript
-  withTransaction<T>(client: Pool | PoolClient,
-                     queries: (tx: PoolClient) => PromiseLike<T>,
-                     options?: TransactionOptions): Promise<T>
-  ```
-</details>
+<T>(client: Pool | PoolClient, queries: (tx: PoolClient) => PromiseLike<T>, options?: TransactionOptions) => Promise<T>
+```
 
 Execute a set of queries within a transaction.
 
@@ -362,14 +319,9 @@ const petCount = await withTransaction(pool, async (tx) => {
 
 #### withSavepoint
 
-<details>
-  <summary>Show type signature</summary>
-  
-  ```typescript
-  withSavepoint<T>(tx: PoolClient,
-                   queries: (tx: PoolClient) => PromiseLike<T>): Promise<T>
-  ```
-</details>
+```typescript
+<T>(tx: PoolClient, queries: (tx: PoolClient) => PromiseLike<T>) => Promise<T>
+```
 
 Execute a set of queries within a [savepoint](https://www.postgresql.org/docs/current/sql-savepoint.html).
 
