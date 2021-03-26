@@ -11,6 +11,7 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 
 - A Promise-based API, which aims to reduce common boilerplate
 - Write raw SQL queries with tagged template strings
+- Prevent most types of accidental SQL injection vulnerabilities
 - Transaction and savepoint handling, including retrying in case of
   serialization failures and deadlocks.
 - First-class TypeScript support
