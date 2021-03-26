@@ -40,10 +40,7 @@ const db = new Pool({
   password: 'database-password',
 })
 
-const result = await queryOne(
-  db,
-  sql`SELECT id, name FROM pig WHERE name = ${'Napoleon'}`
-)
+const result = await queryOne(db, sql`SELECT id, name FROM pet WHERE name = ${'Napoleon'}`)
 // => { id: 1, name: 'Napoleon' }
 ```
 
