@@ -31,9 +31,17 @@ $ npm install possu
 import { queryOne, sql } from 'possu'
 import { Pool } from 'pg'
 
-const pool = new Pool({ ... })
+const db = new Pool({
+  database: 'database-name',
+  host: 'localhost',
+  user: 'database-user',
+  password: 'database-password',
+})
 
-const result = await queryOne(pool, sql`SELECT id, name FROM pig WHERE name = ${'Napoleon'}`)
+const result = await queryOne(
+  db,
+  sql`SELECT id, name FROM pig WHERE name = ${'Napoleon'}`
+)
 // => { id: 1, name: 'Napoleon' }
 ```
 
@@ -59,8 +67,7 @@ const result = await queryOne(pool, sql`SELECT id, name FROM pig WHERE name = ${
 
 ```typescript
 (parts: TemplateStringsArray, ...values: unknown[]) => SqlQuery
- ```
-
+```
 
 Create an SQL query.
 
@@ -84,7 +91,7 @@ const exists = sql`SELECT exists(${query})`
 
 ```typescript
 (name: string) => Identifier
- ```
+```
 
 Escape an SQL
 [identifier](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS)
@@ -105,7 +112,7 @@ sql`SELECT * FROM pet ORDER BY ${sql.identifier('name')} DESC`
 
 ```typescript
 (value: unknown) => string
- ```
+```
 
 Serialize a value as JSON to be used in a query.
 
@@ -118,8 +125,7 @@ sql`SELECT * FROM jsonb_array_elements(${sql.json([1, 2, 3])})`
 
 ```typescript
 <T extends object, K extends keyof T>(objects: T[], ...keys: K[]) => ValuesList<T, K>
- ```
-</details>
+```
 
 Construct a [VALUES
 list](https://www.postgresql.org/docs/current/queries-values.html) from a
@@ -165,7 +171,7 @@ parser that helps the TypeScript compiler infer the correct result type.
 ```typescript
 import { Record, Number, String } from 'runtypes'
 
-const result = await query<string>(pool, sql`SELECT name FROM pet`)
+const result = await query<string>(db, sql`SELECT name FROM pet`)
 // Type inferred to string[]
 
 const Pet = Record({
@@ -173,7 +179,7 @@ const Pet = Record({
   name: String,
 })
 
-const pets = await query(client, sql`SELECT * FROM pet`, Pet.check)
+const pets = await query(db, sql`SELECT * FROM pet`, Pet.check)
 // Type inferred to [{ id: number, name: string }]
 ```
 
@@ -181,21 +187,21 @@ const pets = await query(client, sql`SELECT * FROM pet`, Pet.check)
 
 ```typescript
 <T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T) => Promise<T[]>
- ```
+```
 
 Execute a `SELECT` or other query that returns zero or more rows.
 
 Returns all rows.
 
 ```typescript
-const pets = await query(pool, sql`SELECT * FROM pet`)
+const pets = await query(db, sql`SELECT * FROM pet`)
 // => [{ id: 1, name: 'Iiris' }, { id: 2, name: 'Jean' }]
 ```
 
 If selecting a single column, each result row is unwrapped automatically.
 
 ```typescript
-const names = await query(client, sql`SELECT name FROM pet`)
+const names = await query(db, sql`SELECT name FROM pet`)
 // => ['Iiris', 'Jean']
 ```
 
@@ -203,7 +209,7 @@ const names = await query(client, sql`SELECT name FROM pet`)
 
 ```typescript
 <T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T) => Promise<T>
- ```
+```
 
 Execute a `SELECT` or other query that returns exactly one row.
 
@@ -212,14 +218,14 @@ Returns the first row.
 - Throws a `ResultError` if query doesn't return exactly one row.
 
 ```typescript
-const pet = await queryOne(pool, sql`SELECT id, name FROM pet WHERE id = 1`)
+const pet = await queryOne(db, sql`SELECT id, name FROM pet WHERE id = 1`)
 // => { id: 1, name: 'Iiris' }
 ```
 
 If selecting a single column, it is unwrapped automatically.
 
 ```typescript
-const name = await queryOne(client, sql`SELECT name FROM pet WHERE id = 1`)
+const name = await queryOne(db, sql`SELECT name FROM pet WHERE id = 1`)
 // => 'Iiris'
 ```
 
@@ -227,7 +233,7 @@ You can transform the result with a custom row parser. Here we transform the
 count from a string to a number by using the built-in Number constructor.
 
 ```typescript
-const count = await queryOne(client, sql`SELECT count(*) FROM pet`, Number)
+const count = await queryOne(db, sql`SELECT count(*) FROM pet`, Number)
 // => 3
 ```
 
@@ -244,29 +250,23 @@ Returns the first row or `undefined`.
 - Throws a `ResultError` if query returns more than 1 row.
 
 ```typescript
-const pet = await queryMaybeOne(
-  pool,
-  sql`SELECT id, name FROM pet WHERE id = 1`
-)
+const pet = await queryMaybeOne(db, sql`SELECT id, name FROM pet WHERE id = 1`)
 // => { id: 1, name: 'Iiris' }
 
-const nothing = await queryMaybeOne(
-  client,
-  sql`SELECT id, name FROM pet WHERE false`
-)
+const nil = await queryMaybeOne(db, sql`SELECT id, name FROM pet WHERE false`)
 // => undefined
 ```
 
 If selecting a single column, it is unwrapped automatically.
 
 ```typescript
-const name = await queryMaybeOne(pool, sql`SELECT name FROM pet WHERE id = 1`)
+const name = await queryMaybeOne(db, sql`SELECT name FROM pet WHERE id = 1`)
 // => 'Iiris'
 ```
 
 #### execute
 
- ```typescript
+```typescript
 (client: Pool | PoolClient, query: SqlQuery) => Promise<number>
 ```
 
@@ -275,7 +275,7 @@ Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to r
 Returns the number of rows affected.
 
 ```typescript
-const rowCount = await execute(pool, sql`INSERT INTO pet (name) VALUES ('Fae')`)
+const rowCount = await execute(db, sql`INSERT INTO pet (name) VALUES ('Fae')`)
 // => 1
 ```
 
@@ -283,7 +283,7 @@ const rowCount = await execute(pool, sql`INSERT INTO pet (name) VALUES ('Fae')`)
 
 #### withTransaction
 
-  ```typescript
+```typescript
 <T>(client: Pool | PoolClient, queries: (tx: PoolClient) => PromiseLike<T>, options?: TransactionOptions) => Promise<T>
 ```
 
@@ -309,7 +309,7 @@ transaction by supplying the `accessMode` and `isolationLevel` options,
 respectively.
 
 ```typescript
-const petCount = await withTransaction(pool, async (tx) => {
+const petCount = await withTransaction(db, async (tx) => {
   await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'First'}')`)
   await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'Second'}')`)
   await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'Third'}')`)
@@ -334,7 +334,7 @@ the error is rethrown.
 May only be used within a transaction.
 
 ```typescript
-await withTransaction(pool, async (tx) => {
+await withTransaction(db, async (tx) => {
   await execute(tx, sql`INSERT INTO pet (name) VALUES ('First')`)
   return withSavepoint(tx, async (tx) => {
     await execute(tx, sql`INSERT INTO pet (name) VALUES ('Second')`)
