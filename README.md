@@ -63,7 +63,7 @@ might look a bit like this:
 
 ```typescript
 async function getUser(tx, userId) {
-  const result = await return tx.query('SELECT * FROM users WHERE user_id = $1', [userId])
+  const result = await tx.query('SELECT * FROM users WHERE user_id = $1', [userId])
   return result.rows[0]
 }
 ```
