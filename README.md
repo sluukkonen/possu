@@ -95,8 +95,8 @@ function getUserNames(tx) {
 }
 ```
 
-Here, we use Possu's `sql` tagged template literal for constructing the
-queries while `query` and `queryMaybeOne` functions contain the necessary
+Here we use Possu's `sql` tagged template literal for constructing the
+queries, while `query` and `queryMaybeOne` functions contain the necessary
 code for selecting the correct amount of rows from the result set.
 
 In the `getUserNames` function, possu automatically unwraps the `name` column
