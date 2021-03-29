@@ -63,7 +63,7 @@ might have the following kind of shape:
 
 ```typescript
 async function getUser(tx, userId) {
-  const result = await return tx.query('SELECT * FROM user WHERE user_id = $1', [userId])
+  const result = await return tx.query('SELECT * FROM users WHERE user_id = $1', [userId])
   return result.rows[0]
 }
 ```
@@ -75,8 +75,8 @@ interested in a single column from the result set.
 
 ```typescript
 async function getUserNames(tx) {
-  const result = await tx.query('SELECT name FROM user')
-  return result.rows.map((row) => row.name))
+  const result = await tx.query('SELECT name FROM users')
+  return result.rows.map((row) => row.name)
 }
 ```
 
@@ -87,11 +87,11 @@ application.
 import { query, queryMaybeOne, sql } from 'possu'
 
 function getUser(tx, userId) {
-  return queryMaybeOne(tx, sql`SELECT * FROM user WHERE user_id = ${userId}`)
+  return queryMaybeOne(tx, sql`SELECT * FROM users WHERE user_id = ${userId}`)
 }
 
 function getUserNames(tx) {
-  return query(tx, sql`SELECT name FROM user`)
+  return query(tx, sql`SELECT name FROM users`)
 }
 ```
 
@@ -125,16 +125,16 @@ This is the only way to create queries in Possu. To prevent accidental SQL injec
 Possu functions check at runtime that the query has been created with `sql`.
 
 ```typescript
-const query = sql`SELECT * FROM pet WHERE id = ${1}`
-// => { text: 'SELECT * FROM pet WHERE id = $1', values: [1] }
+const query = sql`SELECT * FROM users WHERE user_id = ${1}`
+// => { text: 'SELECT * FROM users WHERE user_id = $1', values: [1] }
 ```
 
 Queries may also be nested within other queries. This is a powerful mechanism for code reuse.
 
 ```typescript
-const query = sql`SELECT * FROM pet WHERE id = ${1}`
+const query = sql`SELECT * FROM users WHERE user_id = ${1}`
 const exists = sql`SELECT exists(${query})`
-// => { text: 'SELECT exists(SELECT * FROM pet WHERE id = $1)', values: [1] }
+// => { text: 'SELECT exists(SELECT * FROM users WHERE user_id = $1)', values: [1] }
 ```
 
 #### sql.identifier
@@ -151,13 +151,13 @@ to be used in a query. It can be used to create queries which are
 parametrized by table or column names.
 
 ```typescript
-sql`SELECT * FROM ${sql.identifier('pet')}`
-// => { text: 'SELECT * FROM "pet"', values: [] }
+sql`SELECT * FROM ${sql.identifier('users')}`
+// => { text: 'SELECT * FROM "users"', values: [] }
 ```
 
 ```typescript
-sql`SELECT * FROM pet ORDER BY ${sql.identifier('name')} DESC`
-// => { text: 'SELECT * FROM pet ORDER BY "name" DESC', values: [] }
+sql`SELECT * FROM users ORDER BY ${sql.identifier('name')} DESC`
+// => { text: 'SELECT * FROM users ORDER BY "name" DESC', values: [] }
 ```
 
 #### sql.json
@@ -187,24 +187,24 @@ non-empty array of objects. Useful as a data source to `INSERT` queries or
 when writing complex subqueries.
 
 ```typescript
-sql`INSERT INTO pet (name, age) ${sql.values([
-  { name: 'Iiris', age: 5 },
-  { name: 'Napoleon', age: 11 },
+sql`INSERT INTO users (name, age) ${sql.values([
+  { name: 'Alice', age: 20 },
+  { name: 'Bob', age: 30 },
 ])}`
-// => { text: 'INSERT INTO pet (name, age) VALUES ($1, $2), ($3, $4)', values: ['Iiris', 5, 'Napoleon', 11] }
+// => { text: 'INSERT INTO users (name, age) VALUES ($1, $2), ($3, $4)', values: ['Alice', 20, 'Bob', 30] }
 ```
 
 You can also customize the set of keys used.
 
 ```typescript
-sql`INSERT INTO pet (name) ${sql.values(
+sql`INSERT INTO users (name) ${sql.values(
   [
-    { name: 'Iiris', age: 5 },
-    { name: 'Napoleon', age: 11 },
+    { name: 'Alice', age: 20 },
+    { name: 'Bob', age: 30 },
   ],
   'name'
 )}`
-// => { text: 'INSERT INTO pet (name) VALUES ($1), ($2)', values: ['Iiris', 'Napoleon'] }
+// => { text: 'INSERT INTO users (name) VALUES ($1), ($2)', values: ['Alice', 'Bob'] }
 ```
 
 ### Executing queries
@@ -225,15 +225,15 @@ parser that helps the TypeScript compiler infer the correct result type.
 ```typescript
 import { Record, Number, String } from 'runtypes'
 
-const result = await query<string>(db, sql`SELECT name FROM pet`)
+const result = await query<string>(db, sql`SELECT name FROM users`)
 // Type inferred to string[]
 
-const Pet = Record({
+const User = Record({
   id: Number,
   name: String,
 })
 
-const pets = await query(db, sql`SELECT * FROM pet`, Pet.check)
+const users = await query(db, sql`SELECT * FROM users`, User.check)
 // Type inferred to [{ id: number, name: string }]
 ```
 
@@ -248,15 +248,15 @@ Execute a `SELECT` or other query that returns zero or more rows.
 Returns all rows.
 
 ```typescript
-const pets = await query(db, sql`SELECT * FROM pet`)
-// => [{ id: 1, name: 'Iiris' }, { id: 2, name: 'Jean' }]
+const users = await query(db, sql`SELECT * FROM users`)
+// => [{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }]
 ```
 
 If selecting a single column, each result row is unwrapped automatically.
 
 ```typescript
-const names = await query(db, sql`SELECT name FROM pet`)
-// => ['Iiris', 'Jean']
+const names = await query(db, sql`SELECT name FROM users`)
+// => ['Alice', 'Bob']
 ```
 
 #### queryOne
@@ -272,22 +272,22 @@ Returns the first row.
 - Throws a `ResultError` if query doesn't return exactly one row.
 
 ```typescript
-const pet = await queryOne(db, sql`SELECT id, name FROM pet WHERE id = 1`)
-// => { id: 1, name: 'Iiris' }
+const user = await queryOne(db, sql`SELECT * FROM users WHERE id = 1`)
+// => { id: 1, name: 'Alice' }
 ```
 
 If selecting a single column, it is unwrapped automatically.
 
 ```typescript
-const name = await queryOne(db, sql`SELECT name FROM pet WHERE id = 1`)
-// => 'Iiris'
+const name = await queryOne(db, sql`SELECT name FROM users WHERE id = 1`)
+// => 'Alice'
 ```
 
 You can transform the result with a custom row parser. Here we transform the
 count from a string to a number by using the built-in Number constructor.
 
 ```typescript
-const count = await queryOne(db, sql`SELECT count(*) FROM pet`, Number)
+const count = await queryOne(db, sql`SELECT count(*) FROM users`, Number)
 // => 3
 ```
 
@@ -304,18 +304,18 @@ Returns the first row or `undefined`.
 - Throws a `ResultError` if query returns more than 1 row.
 
 ```typescript
-const pet = await queryMaybeOne(db, sql`SELECT id, name FROM pet WHERE id = 1`)
-// => { id: 1, name: 'Iiris' }
+const user = await queryMaybeOne(db, sql`SELECT * FROM users WHERE id = 1`)
+// => { id: 1, name: 'Alice' }
 
-const nil = await queryMaybeOne(db, sql`SELECT id, name FROM pet WHERE false`)
+const nil = await queryMaybeOne(db, sql`SELECT * FROM users WHERE false`)
 // => undefined
 ```
 
 If selecting a single column, it is unwrapped automatically.
 
 ```typescript
-const name = await queryMaybeOne(db, sql`SELECT name FROM pet WHERE id = 1`)
-// => 'Iiris'
+const name = await queryMaybeOne(db, sql`SELECT name FROM users WHERE id = 1`)
+// => 'Alice'
 ```
 
 #### execute
@@ -329,7 +329,7 @@ Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to r
 Returns the number of rows affected.
 
 ```typescript
-const rowCount = await execute(db, sql`INSERT INTO pet (name) VALUES ('Fae')`)
+const rowCount = await execute(db, sql`INSERT INTO users (name) VALUES ('Eve')`)
 // => 1
 ```
 
@@ -363,11 +363,11 @@ transaction by supplying the `accessMode` and `isolationLevel` options,
 respectively.
 
 ```typescript
-const petCount = await withTransaction(db, async (tx) => {
-  await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'First'}')`)
-  await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'Second'}')`)
-  await execute(tx, sql`INSERT INTO pet (name) VALUES ('${'Third'}')`)
-  return queryOne(tx, sql`SELECT count(*) FROM pet`, Number)
+const userCount = await withTransaction(db, async (tx) => {
+  await execute(tx, sql`INSERT INTO users (name) VALUES ('${'Alice'}')`)
+  await execute(tx, sql`INSERT INTO users (name) VALUES ('${'Bob'}')`)
+  await execute(tx, sql`INSERT INTO users (name) VALUES ('${'Charlie'}')`)
+  return queryOne(tx, sql`SELECT count(*) FROM users`, Number)
 })
 ```
 
@@ -389,12 +389,14 @@ May only be used within a transaction.
 
 ```typescript
 await withTransaction(db, async (tx) => {
-  await execute(tx, sql`INSERT INTO pet (name) VALUES ('First')`)
-  return withSavepoint(tx, async (tx) => {
-    await execute(tx, sql`INSERT INTO pet (name) VALUES ('Second')`)
-    await execute(tx, sql`INSERT INTO pet (name) VALUES ('Third')`)
-  }).catch((err) => {
+  await execute(tx, sql`INSERT INTO users (name) VALUES ('Alice')`)
+  try {
+    return withSavepoint(tx, async (tx) => {
+      await execute(tx, sql`INSERT INTO users (name) VALUES ('Bob')`)
+      await execute(tx, sql`INSERT INTO users (name) VALUES ('Charlie')`)
+    })
+  } catch (err) {
     // Let the first insert to through if the second or third one fails.
-  })
+  }
 })
 ```
