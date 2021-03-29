@@ -15,7 +15,7 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 - Transaction and savepoint handling, including retrying in case of
   serialization failures and deadlocks.
 - First-class TypeScript support
-- Not a framework. Most functions take a
+- Not a framework. Most Possu functions take either a
   [pg.Pool](https://node-postgres.com/api/pool) or a
   [pg.PoolClient](https://node-postgres.com/api/client) as an argument, so you
   can integrate Possu easily to an existing application.
