@@ -45,7 +45,7 @@ export async function queryOne<T = unknown>(
   const { fields, rows } = await send(client, sql)
   const { length } = rows
 
-  if (length === 0 || length > 1) {
+  if (length !== 1) {
     throw new ResultError(
       `Expected query to return exactly 1 row, got ${length}`,
       sql
