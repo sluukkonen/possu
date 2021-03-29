@@ -65,9 +65,11 @@ const result = await queryOne(db, sql`SELECT id, name FROM pet WHERE name = ${'N
 
 #### sql
 
+<!-- prettier-ignore-start -->
 ```typescript
 (parts: TemplateStringsArray, ...values: unknown[]) => SqlQuery
 ```
+<!-- prettier-ignore-end -->
 
 Create an SQL query.
 
@@ -89,9 +91,11 @@ const exists = sql`SELECT exists(${query})`
 
 #### sql.identifier
 
+<!-- prettier-ignore-start -->
 ```typescript
 (name: string) => Identifier
 ```
+<!-- prettier-ignore-end -->
 
 Escape an SQL
 [identifier](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS)
@@ -110,9 +114,11 @@ sql`SELECT * FROM pet ORDER BY ${sql.identifier('name')} DESC`
 
 #### sql.json
 
+<!-- prettier-ignore-start -->
 ```typescript
 (value: unknown) => string
 ```
+<!-- prettier-ignore-end -->
 
 Serialize a value as JSON to be used in a query.
 
