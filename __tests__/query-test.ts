@@ -161,7 +161,7 @@ describe('queryMaybeOne()', () => {
   it('throws an error if the result contains too many rows', () => {
     const query = sql`SELECT * FROM pet`
     return expect(queryMaybeOne(db, query)).rejects.toThrowError(
-      new ResultError('Expected query to return 1 row at most, got 3', query)
+      new ResultError('Expected query to return 0–1 rows, got 3', query)
     )
   })
 

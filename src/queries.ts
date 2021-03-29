@@ -78,7 +78,7 @@ export async function queryMaybeOne<T = unknown>(
 
   if (length > 1) {
     throw new ResultError(
-      `Expected query to return 1 row at most, got ${length}`,
+      `Expected query to return 0–1 rows, got ${length}`,
       sql
     )
   }
