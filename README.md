@@ -59,7 +59,7 @@ depending on your favourite package manager.
 
 If you've ever written an application using
 [node-postgres](https://node-postgres.com/), a lot of your database code
-might have the following kind of shape:
+might look a bit like this:
 
 ```typescript
 async function getUser(tx, userId) {
