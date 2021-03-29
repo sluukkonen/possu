@@ -20,46 +20,94 @@ A small companion library for [node-postgres](https://node-postgres.com/).
   [pg.PoolClient](https://node-postgres.com/api/client) as an argument, so you
   can integrate Possu easily to an existing application.
 
-## Future plans
+## Table of Contents
 
-- More query builder features (e.g. arrays, unnesting)
+- [Installation](#installation)
+- [Getting started](#getting-started)
+- [API](#api)
+  - [Building queries](#building-queries)
+    - [sql](#sql)
+    - [sql.identifier](#user-content-sqlidentifier)
+    - [sql.json](#user-content-sqljson)
+    - [sql.values](#user-content-sqlvalues)
+  - [Executing queries](#executing-queries)
+    - [query](#query)
+    - [queryOne](#queryOne)
+    - [queryMaybeOne](#queryMaybeOne)
+    - [execute](#execute)
+  - [Transaction handling](#transaction-handling)
+    - [withTransaction](#withTransaction)
+    - [withSavepoint](#withSavepoint)
 
-## Getting started
+## Installation
 
-```
+Run either
+
+```shell
 $ npm install possu
 ```
 
-```typescript
-import { queryOne, sql } from 'possu'
-import { Pool } from 'pg'
+or
 
-const db = new Pool({
-  database: 'database-name',
-  host: 'localhost',
-  user: 'database-user',
-  password: 'database-password',
-})
-
-const result = await queryOne(db, sql`SELECT id, name FROM pet WHERE name = ${'Napoleon'}`)
-// => { id: 1, name: 'Napoleon' }
+```shell
+$ yarn add possu
 ```
 
-## API
+depending on your favourite package manager.
 
-- [Building queries](#building-queries)
-  - [sql](#sql)
-  - [sql.identifier](#user-content-sqlidentifier)
-  - [sql.json](#user-content-sqljson)
-  - [sql.values](#user-content-sqlvalues)
-- [Executing queries](#executing-queries)
-  - [query](#query)
-  - [queryOne](#queryOne)
-  - [queryMaybeOne](#queryMaybeOne)
-  - [execute](#execute)
-- [Transaction handling](#transaction-handling)
-  - [withTransaction](#withTransaction)
-  - [withSavepoint](#withSavepoint)
+## Getting started
+
+If you've ever written an application using
+[node-postgres](https://node-postgres.com/), a lot of your database code
+might have the following kind of shape:
+
+```typescript
+async function getUser(tx, userId) {
+  const result = await return tx.query('SELECT * FROM user WHERE user_id = $1', [userId])
+  return result.rows[0]
+}
+```
+
+In addition to the SQL query, there is some boilerplate code that selects the
+correct amount of rows from the query result. In a large application, this
+can get quite repetetive. Things can even more complicated if you're only
+interested in a single column from the result set.
+
+```typescript
+async function getUserNames(tx) {
+  const result = await tx.query('SELECT name FROM user')
+  return result.rows.map((row) => row.name))
+}
+```
+
+The goal of Possu is to eliminate this kind of boilerplate code from your
+application.
+
+```typescript
+import { query, queryMaybeOne, sql } from 'possu'
+
+function getUser(tx, userId) {
+  return queryMaybeOne(tx, sql`SELECT * FROM user WHERE user_id = ${userId}`)
+}
+
+function getUserNames(tx) {
+  return query(tx, sql`SELECT name FROM user`)
+}
+```
+
+Here, we use Possu's `sql` tagged template literal for constructing the
+queries while `query` and `queryMaybeOne` functions contain the necessary
+boilerplate code for selecting the correct amount of rows from the result
+set.
+
+In the `getUserNames` function, possu automatically unwraps the `name` column
+from each row, since in most cases, an extra object wrapper in the results of
+a single-column query is just extra noise.
+
+That's it! This was not an exhaustive tour of Possu, but it should be enough
+to get an idea of its main features.
+
+## API
 
 ### Building queries
 
