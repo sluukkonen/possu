@@ -127,7 +127,7 @@ Possu functions check at runtime that the query has been created with `sql`.
 
 ```typescript
 const query = sql`SELECT * FROM users WHERE user_id = ${1}`
-// => { text: 'SELECT * FROM users WHERE user_id = $1', values: [1] }
+// => SqlQuery { text: 'SELECT * FROM users WHERE user_id = $1', values: [1] }
 ```
 
 Queries may also be nested within other queries. This is a powerful mechanism for code reuse.
@@ -135,7 +135,7 @@ Queries may also be nested within other queries. This is a powerful mechanism fo
 ```typescript
 const query = sql`SELECT * FROM users WHERE user_id = ${1}`
 const exists = sql`SELECT exists(${query})`
-// => { text: 'SELECT exists(SELECT * FROM users WHERE user_id = $1)', values: [1] }
+// => SqlQuery { text: 'SELECT exists(SELECT * FROM users WHERE user_id = $1)', values: [1] }
 ```
 
 #### sql.identifier
@@ -153,12 +153,12 @@ parametrized by table or column names.
 
 ```typescript
 sql`SELECT * FROM ${sql.identifier('users')}`
-// => { text: 'SELECT * FROM "users"', values: [] }
+// => SqlQuery { text: 'SELECT * FROM "users"', values: [] }
 ```
 
 ```typescript
 sql`SELECT * FROM users ORDER BY ${sql.identifier('name')} DESC`
-// => { text: 'SELECT * FROM users ORDER BY "name" DESC', values: [] }
+// => SqlQuery { text: 'SELECT * FROM users ORDER BY "name" DESC', values: [] }
 ```
 
 #### sql.json
@@ -173,7 +173,7 @@ Serialize a value as JSON to be used in a query.
 
 ```typescript
 sql`SELECT * FROM jsonb_array_elements(${sql.json([1, 2, 3])})`
-// => { text : 'SELECT * FROM jsonb_array_elements($1)', values: ['[1,2,3]'] }
+// => SqlQuery { text : 'SELECT * FROM jsonb_array_elements($1)', values: ['[1,2,3]'] }
 ```
 
 #### sql.values
@@ -192,7 +192,7 @@ sql`INSERT INTO users (name, age) ${sql.values([
   { name: 'Alice', age: 20 },
   { name: 'Bob', age: 30 },
 ])}`
-// => { text: 'INSERT INTO users (name, age) VALUES ($1, $2), ($3, $4)', values: ['Alice', 20, 'Bob', 30] }
+// => SqlQuery { text: 'INSERT INTO users (name, age) VALUES ($1, $2), ($3, $4)', values: ['Alice', 20, 'Bob', 30] }
 ```
 
 You can also customize the set of keys used.
@@ -205,7 +205,7 @@ sql`INSERT INTO users (name) ${sql.values(
   ],
   'name'
 )}`
-// => { text: 'INSERT INTO users (name) VALUES ($1), ($2)', values: ['Alice', 'Bob'] }
+// => SqlQuery { text: 'INSERT INTO users (name) VALUES ($1), ($2)', values: ['Alice', 'Bob'] }
 ```
 
 ### Executing queries

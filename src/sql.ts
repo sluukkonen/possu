@@ -23,8 +23,8 @@ interface Sql {
    * parametrized by table or column names.
    *
    * @example
-   * sql`SELECT * FROM ${sql.identifier('pet')}`
-   * // => { text: 'SELECT * FROM "pet"', values: [] }
+   * sql`SELECT * FROM ${sql.identifier('users')}`
+   * // => SqlQuery { text: 'SELECT * FROM "users"', values: [] }
    */
   identifier: (identifier: string) => Identifier
 
@@ -33,7 +33,7 @@ interface Sql {
    *
    * @example
    * sql`SELECT * FROM jsonb_array_elements(${sql.json([1, 2, 3])})`
-   * // => { text : 'SELECT * FROM jsonb_array_elements($1)', values: ['[1,2,3]'] }
+   * // => SqlQuery { text : 'SELECT * FROM jsonb_array_elements($1)', values: ['[1,2,3]'] }
    */
   json: (value: unknown) => string
 
@@ -42,23 +42,23 @@ interface Sql {
    * data source to `INSERT` queries or when writing complex subqueries.
    *
    * @example
-   * sql`INSERT INTO pet (name, age) ${sql.values([
-   *   { name: 'Iiris', age: 5 },
-   *   { name: 'Napoleon', age: 11 },
+   * sql`INSERT INTO users (name, age) ${sql.values([
+   *   { name: 'Alice', age: 20 },
+   *   { name: 'Bob', age: 30 },
    * ])}`
-   * // => { text: 'INSERT INTO pet (name, age) VALUES ($1, $2), ($3, $4)', values: ['Iiris', 5, 'Napoleon', 11] }
+   * // => SqlQuery { text: 'INSERT INTO users (name, age) VALUES ($1, $2), ($3, $4)', values: ['Alice', 20, 'Bob', 30] }
    *
    * You can also customize the set of keys used.
    *
    * @example
-   * sql`INSERT INTO pet (name) ${sql.values(
+   * sql`INSERT INTO users (name) ${sql.values(
    *   [
-   *     { name: 'Iiris', age: 5 },
-   *     { name: 'Napoleon', age: 11 },
+   *     { name: 'Alice', age: 20 },
+   *     { name: 'Bob', age: 30 },
    *   ],
    *   'name'
    * )}`
-   * // => { text: 'INSERT INTO pet (name) VALUES ($1), ($2)', values: ['Iiris', 'Napoleon'] }
+   * // => SqlQuery { text: 'INSERT INTO users (name) VALUES ($1), ($2)', values: ['Alice', 'Bob'] }
    */
   values: <T extends Record<string, unknown>, K extends keyof T>(
     objects: T[],
@@ -74,8 +74,8 @@ interface Sql {
  * created with `sql`.
  *
  * @example
- * const query = sql`SELECT * FROM pet WHERE id = ${1}`
- * // => { text: 'SELECT * FROM pet WHERE id = $1', values: [1] }
+ * const query = sql`SELECT * FROM users WHERE id = ${1}`
+ * // => SqlQuery { text: 'SELECT * FROM users WHERE id = $1', values: [1] }
  */
 export const sql: Sql = function sql(
   parts: TemplateStringsArray,
