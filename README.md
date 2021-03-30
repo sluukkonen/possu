@@ -130,12 +130,20 @@ const query = sql`SELECT * FROM users WHERE user_id = ${1}`
 // => SqlQuery { text: 'SELECT * FROM users WHERE user_id = $1', values: [1] }
 ```
 
-Queries may also be nested within other queries. This is a powerful mechanism for code reuse.
+Queries may be nested within other queries, which can be a powerful mechanism for code reuse.
 
 ```typescript
-const query = sql`SELECT * FROM users WHERE user_id = ${1}`
-const exists = sql`SELECT exists(${query})`
+const usersQuery = sql`SELECT * FROM users WHERE user_id = ${1}`
+const existsQuery = sql`SELECT exists(${usersQuery})`
 // => SqlQuery { text: 'SELECT exists(SELECT * FROM users WHERE user_id = $1)', values: [1] }
+```
+
+Nested queries can also be used to customize parts of a query without having to worry about SQL injections.
+
+```typescript
+const order = 'asc'
+const query = sql`SELECT * FROM users ORDER BY name ${order === 'asc' ? sql`ASC` : sql`DESC`}`
+// => SqlQuery { text: 'SELECT * FROM users ORDER BY name ASC', values: [] }
 ```
 
 #### sql.identifier
