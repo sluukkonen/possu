@@ -205,6 +205,7 @@ async function performTransaction<T>(
     return result
   } catch (err) {
     await tx.query('ROLLBACK')
+
     if (maxRetries > 0 && shouldRetry(err)) {
       return performTransaction(
         tx,
@@ -213,9 +214,9 @@ async function performTransaction<T>(
         shouldRetry,
         maxRetries - 1
       )
-    } else {
-      throw err
     }
+
+    throw err
   }
 }
 
@@ -226,6 +227,10 @@ function isRetryableError(err: Error) {
   } else {
     return false
   }
+}
+
+function isNoActiveTransactionError(err: DatabaseError) {
+  return err instanceof DatabaseError && err.code === noActiveSqlTransaction
 }
 
 /**
@@ -253,13 +258,12 @@ export async function withSavepoint<T>(
     await tx.query('RELEASE SAVEPOINT possu_savepoint')
     return result
   } catch (err) {
-    if (
-      !(err instanceof DatabaseError && err.code === noActiveSqlTransaction)
-    ) {
+    if (!isNoActiveTransactionError(err)) {
       await tx.query(
         'ROLLBACK TO SAVEPOINT possu_savepoint; RELEASE SAVEPOINT possu_savepoint'
       )
     }
+
     throw err
   }
 }
