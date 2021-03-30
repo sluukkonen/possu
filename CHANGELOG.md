@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Improve the error message of [`queryMaybeOne`](README.md#queryMaybeOne) in cases where
   the query returns an unexpected amount of rows.
+- Make private properties of `SqlQuery` non-enumerable
 - Improve documentation
 
 ## [0.9.0] - 2021-01-26
