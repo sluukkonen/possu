@@ -1,4 +1,5 @@
-export const possu = Symbol('possu')
+export const partsSymbol = Symbol('parts')
+export const rawValuesSymbol = Symbol('rawValues')
 
 export class SqlQuery {
   /** The text of the query. */
@@ -6,16 +7,19 @@ export class SqlQuery {
   /** The values of the query. */
   values: unknown[];
   /** @internal */
-  [possu]: () => readonly [TemplateStringsArray, readonly unknown[]]
+  [partsSymbol]: TemplateStringsArray;
+  /** @internal */
+  [rawValuesSymbol]: readonly unknown[]
 
   constructor(
     text: string,
     values: unknown[],
     parts: TemplateStringsArray,
-    originalValues: readonly unknown[]
+    rawValues: readonly unknown[]
   ) {
     this.text = text
     this.values = values
-    this[possu] = () => [parts, originalValues]
+    Object.defineProperty(this, partsSymbol, { value: parts })
+    Object.defineProperty(this, rawValuesSymbol, { value: rawValues })
   }
 }
