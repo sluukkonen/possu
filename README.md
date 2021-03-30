@@ -63,7 +63,9 @@ might look a bit like this:
 
 ```typescript
 async function getUser(tx, userId) {
-  const result = await tx.query('SELECT * FROM users WHERE user_id = $1', [userId])
+  const result = await tx.query('SELECT * FROM users WHERE user_id = $1', [
+    userId,
+  ])
   return result.rows[0]
 }
 ```
@@ -389,13 +391,11 @@ May only be used within a transaction.
 ```typescript
 await withTransaction(db, async (tx) => {
   await execute(tx, sql`INSERT INTO users (name) VALUES ('Alice')`)
-  try {
-    return withSavepoint(tx, async (tx) => {
-      await execute(tx, sql`INSERT INTO users (name) VALUES ('Bob')`)
-      await execute(tx, sql`INSERT INTO users (name) VALUES ('Charlie')`)
-    })
-  } catch (err) {
-    // Let the first insert to through if the second or third one fails.
-  }
+  return withSavepoint(tx, async (tx) => {
+    await execute(tx, sql`INSERT INTO users (name) VALUES ('Bob')`)
+    await execute(tx, sql`INSERT INTO users (name) VALUES ('Charlie')`)
+  }).catch((err) => {
+    // Let the first insert to through if the second or third one fail.
+  })
 })
 ```
