@@ -111,22 +111,13 @@ export async function withTransaction<T>(
   queries: (tx: PoolClient) => PromiseLike<T>,
   options: TransactionOptions = defaultTransactionOptions
 ): Promise<T> {
-  const beginStatement = getBeginStatement(
-    options.isolationLevel,
-    options.accessMode
-  )
+  const begin = getBegin(options.isolationLevel, options.accessMode)
   const shouldRetry = getShouldRetry(options.shouldRetry)
   const maxRetries = getMaxRetries(options.maxRetries)
   const tx = client instanceof Pool ? await client.connect() : client
 
   try {
-    return await performTransaction(
-      tx,
-      beginStatement,
-      queries,
-      shouldRetry,
-      maxRetries
-    )
+    return await performTransaction(tx, begin, queries, shouldRetry, maxRetries)
   } finally {
     if (client instanceof Pool) {
       tx.release()
@@ -134,9 +125,9 @@ export async function withTransaction<T>(
   }
 }
 
-function getBeginStatement(
-  isolationLevel: IsolationLevel | undefined,
-  accessMode: AccessMode | undefined
+function getBegin(
+  isolationLevel?: IsolationLevel,
+  accessMode?: AccessMode
 ): string {
   return 'BEGIN' + getIsolationLevel(isolationLevel) + getAccessMode(accessMode)
 }
@@ -193,13 +184,13 @@ function getMaxRetries(maxRetries?: number): number {
 
 async function performTransaction<T>(
   tx: PoolClient,
-  beginStatement: string,
+  begin: string,
   queries: (tx: PoolClient) => PromiseLike<T>,
   shouldRetry: (err: Error) => boolean,
   maxRetries: number
 ): Promise<T> {
   try {
-    await tx.query(beginStatement)
+    await tx.query(begin)
     const result = await queries(tx)
     await tx.query('COMMIT')
     return result
@@ -207,13 +198,7 @@ async function performTransaction<T>(
     await tx.query('ROLLBACK')
 
     if (maxRetries > 0 && shouldRetry(err)) {
-      return performTransaction(
-        tx,
-        beginStatement,
-        queries,
-        shouldRetry,
-        maxRetries - 1
-      )
+      return performTransaction(tx, begin, queries, shouldRetry, maxRetries - 1)
     }
 
     throw err
