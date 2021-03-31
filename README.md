@@ -29,7 +29,6 @@ A small companion library for [node-postgres](https://node-postgres.com/).
     - [sql](#sql)
     - [sql.identifier](#user-content-sqlidentifier)
     - [sql.json](#user-content-sqljson)
-    - [sql.values](#user-content-sqlvalues)
   - [Executing queries](#executing-queries)
     - [query](#query)
     - [queryOne](#queryOne)
@@ -142,7 +141,9 @@ Nested queries can also be used to customize parts of a query without having to 
 
 ```typescript
 const order = 'asc'
-const query = sql`SELECT * FROM users ORDER BY name ${order === 'asc' ? sql`ASC` : sql`DESC`}`
+const query = sql`SELECT * FROM users ORDER BY name ${
+  order === 'asc' ? sql`ASC` : sql`DESC`
+}`
 // => SqlQuery { text: 'SELECT * FROM users ORDER BY name ASC', values: [] }
 ```
 
@@ -182,38 +183,6 @@ Serialize a value as JSON to be used in a query.
 ```typescript
 sql`SELECT * FROM jsonb_array_elements(${sql.json([1, 2, 3])})`
 // => SqlQuery { text : 'SELECT * FROM jsonb_array_elements($1)', values: ['[1,2,3]'] }
-```
-
-#### sql.values
-
-```typescript
-<T extends object, K extends keyof T>(objects: T[], ...keys: K[]) => ValuesList<T, K>
-```
-
-Construct a [VALUES
-list](https://www.postgresql.org/docs/current/queries-values.html) from a
-non-empty array of objects. Useful as a data source to `INSERT` queries or
-when writing complex subqueries.
-
-```typescript
-sql`INSERT INTO users (name, age) ${sql.values([
-  { name: 'Alice', age: 20 },
-  { name: 'Bob', age: 30 },
-])}`
-// => SqlQuery { text: 'INSERT INTO users (name, age) VALUES ($1, $2), ($3, $4)', values: ['Alice', 20, 'Bob', 30] }
-```
-
-You can also customize the set of keys used.
-
-```typescript
-sql`INSERT INTO users (name) ${sql.values(
-  [
-    { name: 'Alice', age: 20 },
-    { name: 'Bob', age: 30 },
-  ],
-  'name'
-)}`
-// => SqlQuery { text: 'INSERT INTO users (name) VALUES ($1), ($2)', values: ['Alice', 'Bob'] }
 ```
 
 ### Executing queries

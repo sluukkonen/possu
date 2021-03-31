@@ -1,6 +1,6 @@
 import { SqlQuery, partsSymbol, rawValuesSymbol } from './SqlQuery'
 import { Client } from 'pg'
-import { isArray, isObject, isString } from './util'
+import { isString } from './util'
 
 const { escapeIdentifier } = Client.prototype
 
@@ -8,13 +8,9 @@ class Identifier {
   constructor(public text: string) {}
 }
 
-class ValuesList<T extends Record<string, unknown>, K extends keyof T> {
-  constructor(public objects: T[], public keys: K[]) {}
-}
-
 /** The query builder interface of Possu. */
 interface Sql {
-  (parts: TemplateStringsArray, ...values: readonly unknown[]): SqlQuery
+  (parts: TemplateStringsArray, ...rawValues: readonly unknown[]): SqlQuery
 
   /**
    * Escape an SQL
@@ -36,34 +32,6 @@ interface Sql {
    * // => SqlQuery { text : 'SELECT * FROM jsonb_array_elements($1)', values: ['[1,2,3]'] }
    */
   json: (value: unknown) => string
-
-  /**
-   * Construct a values list from a non-empty array of objects. Useful as a
-   * data source to `INSERT` queries or when writing complex subqueries.
-   *
-   * @example
-   * sql`INSERT INTO users (name, age) ${sql.values([
-   *   { name: 'Alice', age: 20 },
-   *   { name: 'Bob', age: 30 },
-   * ])}`
-   * // => SqlQuery { text: 'INSERT INTO users (name, age) VALUES ($1, $2), ($3, $4)', values: ['Alice', 20, 'Bob', 30] }
-   *
-   * You can also customize the set of keys used.
-   *
-   * @example
-   * sql`INSERT INTO users (name) ${sql.values(
-   *   [
-   *     { name: 'Alice', age: 20 },
-   *     { name: 'Bob', age: 30 },
-   *   ],
-   *   'name'
-   * )}`
-   * // => SqlQuery { text: 'INSERT INTO users (name) VALUES ($1), ($2)', values: ['Alice', 'Bob'] }
-   */
-  values: <T extends Record<string, unknown>, K extends keyof T>(
-    objects: T[],
-    ...keys: K[]
-  ) => ValuesList<T, K>
 }
 
 /**
@@ -121,9 +89,6 @@ function sqlInner(
       text.push(part)
     } else if (rawValue instanceof Identifier) {
       text.push(rawValue.text, part)
-    } else if (rawValue instanceof ValuesList) {
-      appendSqlValuesList(text, values, rawValue, getPlaceholder)
-      text.push(part)
     } else {
       text.push(getPlaceholder(), part)
       values.push(rawValue)
@@ -140,64 +105,4 @@ sql.identifier = function identifier(identifier: string) {
 
 sql.json = function json(value: unknown) {
   return JSON.stringify(value)
-}
-
-sql.values = function values(objects, ...keys) {
-  if (!isArray(objects) || !objects.every(isObject)) {
-    throw new TypeError(
-      'The first argument to `sql.values` must be an array of objects'
-    )
-  } else if (objects.length === 0) {
-    throw new Error('The first argument to `sql.values` must be non-empty')
-  }
-
-  if (keys.length === 0) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    keys = Object.keys(objects[0]) as any
-  }
-
-  if (keys.length === 0) {
-    throw new Error('The first object given to `sql.values` must not be empty')
-  }
-
-  return new ValuesList(objects, keys)
-}
-
-function appendSqlValuesList<
-  T extends Record<string, unknown>,
-  K extends keyof T
->(
-  text: string[],
-  values: unknown[],
-  valuesList: ValuesList<T, K>,
-  getPlaceholder: () => string
-): void {
-  const { objects, keys } = valuesList
-  text.push('VALUES ')
-
-  for (let i = 0; i < objects.length; i++) {
-    appendSqlValuesListItem(text, values, objects[i], keys, getPlaceholder)
-    if (i < objects.length - 1) text.push(', ')
-  }
-}
-
-function appendSqlValuesListItem<
-  T extends Record<string, unknown>,
-  K extends keyof T
->(
-  text: string[],
-  values: unknown[],
-  object: T,
-  keys: K[],
-  getPlaceholder: () => string
-) {
-  text.push('(')
-
-  for (let i = 0; i < keys.length; i++) {
-    text.push(getPlaceholder())
-    if (i < keys.length - 1) text.push(', ')
-    values.push(object[keys[i]])
-  }
-
-  text.push(')')
 }

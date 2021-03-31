@@ -5,12 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.10.0] - 2021-03-31
+
+### Changed
 
 - Improve the error message of [`queryMaybeOne`](README.md#queryMaybeOne) in cases where
   the query returns an unexpected amount of rows.
 - Make private properties of `SqlQuery` non-enumerable
 - Improve documentation
+
+### Removed
+
+- Removed `sql.values`. The existing implementation suffered from problems with the ordering of object keys. In most
+  cases, the use of VALUES lists may be replaced with functions like `jsonb_to_recordset`, so I'm removing `sql.values`
+  for now. If it proves to be useful in the future, it may come back in some form.
 
 ## [0.9.0] - 2021-01-26
 
