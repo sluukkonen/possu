@@ -13,7 +13,7 @@ export function coerce<T>(value: unknown): T {
 }
 
 export function map<T, U>(rowParser: (value: T) => U, rows: readonly T[]): U[] {
-  const result = new Array(rows.length)
+  const result = new Array<U>(rows.length)
 
   for (let i = 0; i < rows.length; i++) {
     result[i] = rowParser(rows[i])
@@ -26,9 +26,9 @@ export function mapField<
   K extends string,
   T,
   U,
-  A extends ReadonlyArray<{ [P in K]: T }>
+  A extends readonly Record<K, T>[]
 >(name: K, rowParser: (value: T) => U, rows: A): U[] {
-  const result = new Array(rows.length)
+  const result = new Array<U>(rows.length)
 
   for (let i = 0; i < rows.length; i++) {
     result[i] = rowParser(rows[i][name])
