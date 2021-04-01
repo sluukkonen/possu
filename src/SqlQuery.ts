@@ -26,10 +26,9 @@ export class SqlQuery {
   }
 
   /**
-   * Calling the `.prepare()` method on a query causes it be executed as a
-   * prepared statement with the given name. This can sometimes have measurable
-   * performance benefits, especially if the query is very complex to parse and
-   * plan.
+   * Execute the query as a prepared statement.
+   *
+   * This can sometimes have measurable performance benefits, especially if the query is very complex to parse and plan.
    *
    * See the [PostgreSQL manual](https://www.postgresql.org/docs/current/sql-prepare.html)
    * for more information.
