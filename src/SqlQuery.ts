@@ -5,7 +5,9 @@ export class SqlQuery {
   /** The text of the query. */
   text: string
   /** The values of the query. */
-  values: unknown[];
+  values: unknown[]
+  /** The name of the query. */
+  name?: string;
   /** @internal */
   [partsSymbol]: TemplateStringsArray;
   /** @internal */
@@ -21,5 +23,27 @@ export class SqlQuery {
     this.values = values
     Object.defineProperty(this, partsSymbol, { value: parts })
     Object.defineProperty(this, rawValuesSymbol, { value: rawValues })
+  }
+
+  /**
+   * Calling the `.prepare()` method on a query causes it be executed as a
+   * prepared statement with the given name. This can sometimes have measurable
+   * performance benefits, especially if the query is very complex to parse and
+   * plan.
+   *
+   * See the [PostgreSQL manual](https://www.postgresql.org/docs/current/sql-prepare.html)
+   * for more information.
+   *
+   * @example
+   *
+   * ```typescript
+   * sql`SELECT * FROM users`.prepare('fetch-users')
+   * // => SqlQuery { text: 'SELECT * FROM users', values: [], name: 'fetch-users' }
+   * ```
+   *
+   */
+  prepare(name: string): this {
+    this.name = name
+    return this
   }
 }

@@ -98,3 +98,15 @@ describe('sql.json()', () => {
     })
   })
 })
+
+describe('sql`...`.prepare()', () => {
+  it('adds a name property to the query', () => {
+    expect(
+      sql`SELECT * FROM pet WHERE id = ${1}`.prepare('fetch-pet')
+    ).toMatchObject({
+      text: 'SELECT * FROM pet WHERE id = $1',
+      values: [1],
+      name: 'fetch-pet',
+    })
+  })
+})
