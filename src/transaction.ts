@@ -102,26 +102,24 @@ const defaultTransactionOptions: TransactionOptions = {}
  * transaction by supplying the `accessMode` and `isolationLevel` options,
  * respectively.
  *
- * @param client A connection pool or a client checked out from a pool.
+ * @param pool A connection pool.
  * @param queries A set of queries to execute within the transaction.
  * @param options An optional options object.
  */
 export async function withTransaction<T>(
-  client: Pool | PoolClient,
+  pool: Pool,
   queries: (tx: PoolClient) => PromiseLike<T>,
   options: TransactionOptions = defaultTransactionOptions
 ): Promise<T> {
   const begin = getBegin(options.isolationLevel, options.accessMode)
   const shouldRetry = getShouldRetry(options.shouldRetry)
   const maxRetries = getMaxRetries(options.maxRetries)
-  const tx = client instanceof Pool ? await client.connect() : client
+  const tx = await pool.connect()
 
   try {
     return await performTransaction(tx, begin, queries, shouldRetry, maxRetries)
   } finally {
-    if (client instanceof Pool) {
-      tx.release()
-    }
+    tx.release()
   }
 }
 

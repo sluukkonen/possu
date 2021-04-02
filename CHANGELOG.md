@@ -11,7 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added an ```sql`...`.prepare('query-name')``` method for creating prepared statements. This can
   sometimes have measurable performance benefits, especially if the query is very complex to parse and plan.
+  
+### Changed
 
+- Changed [`withTransaction`](README.md#withtransaction) to only take a connection pool as the first argument.
 
 ## [0.10.0] - 2021-03-31
 

@@ -16,9 +16,9 @@ let db: Pool
 
 beforeAll(async () => {
   db = new Pool({ database: 'possu-test' })
-  await db.query('DROP TABLE IF EXISTS pet')
+  await db.query('DROP TABLE IF EXISTS users')
   await db.query(
-    `CREATE TABLE pet (
+    `CREATE TABLE users (
       id serial PRIMARY KEY,
       name text
     )`
@@ -28,14 +28,18 @@ beforeAll(async () => {
 afterAll(() => db.end())
 
 beforeEach(async () => {
-  await db.query('TRUNCATE TABLE pet RESTART IDENTITY')
-  await db.query(`INSERT INTO pet (name) VALUES ('Iiris'), ('Jean'), ('Senna')`)
+  await withTransaction(db, (tx) =>
+    execute(
+      tx,
+      sql`TRUNCATE TABLE users RESTART IDENTITY; INSERT INTO users (name) VALUES ('Alice'), ('Bob'), ('Charlie')`
+    )
+  )
 })
 
-const insertPet = (tx: PoolClient) =>
-  execute(tx, sql`INSERT INTO pet (name) VALUES ('Bethany')`)
-const getPetCount = (tx?: PoolClient) =>
-  query(tx ?? db, sql`SELECT count(*) FROM pet`).then(Number)
+const insertUser = (tx: PoolClient) =>
+  execute(tx, sql`INSERT INTO users (name) VALUES ('Dave')`)
+const getUserCount = (tx?: PoolClient) =>
+  queryOne(tx ?? db, sql`SELECT count(*) FROM users`, Number)
 
 describe('validation', () => {
   it('checks that queries have been constructed with the `sql` tagged template string', async () => {
@@ -43,8 +47,8 @@ describe('validation', () => {
       (client: Pool | PoolClient, query: SqlQuery) => Promise<unknown>
     > = [query, queryOne, queryMaybeOne, execute]
     const parameters = [
-      'SELECT * FROM pet',
-      { text: 'SELECT * FROM pet', values: [] },
+      'SELECT * FROM users',
+      { text: 'SELECT * FROM users', values: [] },
     ]
 
     for (const fn of fns) {
@@ -62,33 +66,33 @@ describe('validation', () => {
 
 describe('query()', () => {
   it('executes a query and returns the result rows', () =>
-    expect(query(db, sql`SELECT * FROM pet`)).resolves.toEqual([
-      { id: 1, name: 'Iiris' },
-      { id: 2, name: 'Jean' },
-      { id: 3, name: 'Senna' },
+    expect(query(db, sql`SELECT * FROM users`)).resolves.toEqual([
+      { id: 1, name: 'Alice' },
+      { id: 2, name: 'Bob' },
+      { id: 3, name: 'Charlie' },
     ]))
 
   it('unwraps the values if selecting a single column', () =>
-    expect(query(db, sql`SELECT name FROM pet`)).resolves.toEqual([
-      'Iiris',
-      'Jean',
-      'Senna',
+    expect(query(db, sql`SELECT name FROM users`)).resolves.toEqual([
+      'Alice',
+      'Bob',
+      'Charlie',
     ]))
 
   it('supports an optional row parser', async () => {
     await expect(
-      query(db, sql`SELECT * FROM pet`, JSON.stringify)
+      query(db, sql`SELECT * FROM users`, JSON.stringify)
     ).resolves.toEqual([
-      JSON.stringify({ id: 1, name: 'Iiris' }),
-      JSON.stringify({ id: 2, name: 'Jean' }),
-      JSON.stringify({ id: 3, name: 'Senna' }),
+      JSON.stringify({ id: 1, name: 'Alice' }),
+      JSON.stringify({ id: 2, name: 'Bob' }),
+      JSON.stringify({ id: 3, name: 'Charlie' }),
     ])
     await expect(
-      query(db, sql`SELECT name FROM pet`, JSON.stringify)
+      query(db, sql`SELECT name FROM users`, JSON.stringify)
     ).resolves.toEqual([
-      JSON.stringify('Iiris'),
-      JSON.stringify('Jean'),
-      JSON.stringify('Senna'),
+      JSON.stringify('Alice'),
+      JSON.stringify('Bob'),
+      JSON.stringify('Charlie'),
     ])
   })
 })
@@ -96,19 +100,19 @@ describe('query()', () => {
 describe('queryOne()', () => {
   it('executes a query and returns the first row', () =>
     expect(
-      queryOne(db, sql`SELECT * FROM pet WHERE name = ${'Iiris'}`)
+      queryOne(db, sql`SELECT * FROM users WHERE name = ${'Alice'}`)
     ).resolves.toEqual({
       id: 1,
-      name: 'Iiris',
+      name: 'Alice',
     }))
 
   it('unwraps the value if selecting a single column', () =>
     expect(
-      queryOne(db, sql`SELECT name FROM pet WHERE id = ${1}`)
-    ).resolves.toEqual('Iiris'))
+      queryOne(db, sql`SELECT name FROM users WHERE id = ${1}`)
+    ).resolves.toEqual('Alice'))
 
   it('throws an error if the result contains too many rows', () => {
-    const query = sql`SELECT * FROM pet`
+    const query = sql`SELECT * FROM users`
 
     return expect(queryOne(db, query)).rejects.toThrowError(
       new ResultError('Expected query to return exactly 1 row, got 3', query)
@@ -116,7 +120,7 @@ describe('queryOne()', () => {
   })
 
   it('throws an error if the result is empty', () => {
-    const query = sql`SELECT * FROM pet WHERE name = ${'Nobody'}`
+    const query = sql`SELECT * FROM users WHERE name = ${'Nobody'}`
 
     return expect(queryOne(db, query)).rejects.toThrowError(
       new ResultError('Expected query to return exactly 1 row, got 0', query)
@@ -127,12 +131,12 @@ describe('queryOne()', () => {
     await expect(
       queryOne(
         db,
-        sql`SELECT * FROM pet WHERE name = ${'Iiris'}`,
+        sql`SELECT * FROM users WHERE name = ${'Alice'}`,
         JSON.stringify
       )
-    ).resolves.toEqual(JSON.stringify({ id: 1, name: 'Iiris' }))
+    ).resolves.toEqual(JSON.stringify({ id: 1, name: 'Alice' }))
     await expect(
-      queryOne(db, sql`SELECT count(*) FROM pet`, Number)
+      queryOne(db, sql`SELECT count(*) FROM users`, Number)
     ).resolves.toEqual(3)
   })
 })
@@ -140,26 +144,26 @@ describe('queryOne()', () => {
 describe('queryMaybeOne()', () => {
   it('executes a query and returns the first row, if it exists', () =>
     expect(
-      queryMaybeOne(db, sql`SELECT * FROM pet WHERE name = ${'Iiris'}`)
-    ).resolves.toEqual({ id: 1, name: 'Iiris' }))
+      queryMaybeOne(db, sql`SELECT * FROM users WHERE name = ${'Alice'}`)
+    ).resolves.toEqual({ id: 1, name: 'Alice' }))
 
   it('unwraps the value if selecting a single column', () =>
     expect(
-      queryMaybeOne(db, sql`SELECT name FROM pet WHERE id = ${1}`)
-    ).resolves.toEqual('Iiris'))
+      queryMaybeOne(db, sql`SELECT name FROM users WHERE id = ${1}`)
+    ).resolves.toEqual('Alice'))
 
   it('executes a query and returns undefined if the result is empty', async () => {
     await expect(
-      queryMaybeOne(db, sql`SELECT * FROM pet WHERE name = ${'Nobody'}`)
+      queryMaybeOne(db, sql`SELECT * FROM users WHERE name = ${'Nobody'}`)
     ).resolves.toBeUndefined()
 
     await expect(
-      queryMaybeOne(db, sql`SELECT name FROM pet WHERE name = ${'Nobody'}`)
+      queryMaybeOne(db, sql`SELECT name FROM users WHERE name = ${'Nobody'}`)
     ).resolves.toBeUndefined()
   })
 
   it('throws an error if the result contains too many rows', () => {
-    const query = sql`SELECT * FROM pet`
+    const query = sql`SELECT * FROM users`
     return expect(queryMaybeOne(db, query)).rejects.toThrowError(
       new ResultError('Expected query to return 0–1 rows, got 3', query)
     )
@@ -169,42 +173,42 @@ describe('queryMaybeOne()', () => {
     await expect(
       queryMaybeOne(
         db,
-        sql`SELECT * FROM pet WHERE name = ${'Iiris'}`,
+        sql`SELECT * FROM users WHERE name = ${'Alice'}`,
         JSON.stringify
       )
-    ).resolves.toEqual(JSON.stringify({ id: 1, name: 'Iiris' }))
+    ).resolves.toEqual(JSON.stringify({ id: 1, name: 'Alice' }))
     await expect(
       queryMaybeOne(
         db,
-        sql`SELECT name FROM pet WHERE name = ${'Iiris'}`,
+        sql`SELECT name FROM users WHERE name = ${'Alice'}`,
         JSON.stringify
       )
-    ).resolves.toEqual(JSON.stringify('Iiris'))
+    ).resolves.toEqual(JSON.stringify('Alice'))
   })
 })
 
 describe('execute()', () => {
   it('executes a query and returns the number of rows affected', async () => {
     await expect(
-      execute(db, sql`INSERT INTO pet (name) VALUES ('Bethany')`)
+      execute(db, sql`INSERT INTO users (name) VALUES ('Bethany')`)
     ).resolves.toBe(1)
 
     await expect(
-      execute(db, sql`INSERT INTO pet (name) VALUES ('Bethany'), ('Fae')`)
+      execute(db, sql`INSERT INTO users (name) VALUES ('Bethany'), ('Fae')`)
     ).resolves.toBe(2)
   })
 })
 
 describe('transaction()', () => {
   it('executes a set of queries in a transaction, commiting the results', async () => {
-    await expect(getPetCount()).resolves.toBe(3)
-    await withTransaction(db, insertPet)
-    await expect(getPetCount()).resolves.toBe(4)
+    await expect(getUserCount()).resolves.toBe(3)
+    await withTransaction(db, insertUser)
+    await expect(getUserCount()).resolves.toBe(4)
   })
 
   it('returns the value returned by the function', async () => {
     const result = await withTransaction(db, async (tx) => {
-      await insertPet(tx)
+      await insertUser(tx)
       return 42
     })
     expect(result).toBe(42)
@@ -213,19 +217,19 @@ describe('transaction()', () => {
   it('rolls back the transaction if the function returns a rejected promise', async () => {
     await expect(
       withTransaction(db, async (tx) => {
-        await insertPet(tx)
+        await insertUser(tx)
         throw new Error('Boom!')
       })
     ).rejects.toThrowError(new Error('Boom!'))
-    await expect(getPetCount()).resolves.toBe(3)
+    await expect(getUserCount()).resolves.toBe(3)
   })
 
   it('rolls back the transaction if the function throws an error', async () => {
     await expect(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      withTransaction(db, (tx) => (insertPet(tx) as any).than(Number)) // Intentional typo
+      withTransaction(db, (tx) => (insertUser(tx) as any).than(Number)) // Intentional typo
     ).rejects.toThrowError(
-      new TypeError('insertPet(...).than is not a function')
+      new TypeError('insertUser(...).than is not a function')
     )
   })
 
@@ -236,16 +240,6 @@ describe('transaction()', () => {
       new Error('connect ECONNREFUSED 127.0.0.1:54321')
     )
     expect(fn).toHaveBeenCalledTimes(0)
-  })
-
-  it('accepts a checked-out client as well', async () => {
-    const client = await db.connect()
-    try {
-      await withTransaction(client, insertPet)
-      await expect(getPetCount()).resolves.toEqual(4)
-    } finally {
-      client.release()
-    }
   })
 
   describe('validation', () => {
@@ -290,58 +284,58 @@ describe('transaction()', () => {
       'retries queries upto 2 times for retryable errors',
       async (error) => {
         const fn = jest.fn(async (tx: PoolClient) => {
-          await insertPet(tx)
+          await insertUser(tx)
           throw error
         })
         await expect(withTransaction(db, fn)).rejects.toThrowError(error)
-        await expect(getPetCount()).resolves.toBe(3)
+        await expect(getUserCount()).resolves.toBe(3)
         expect(fn).toHaveBeenCalledTimes(3)
       }
     )
 
     it('retries queries upto maxRetries times', async () => {
       const fn = jest.fn(async (tx: PoolClient) => {
-        await insertPet(tx)
+        await insertUser(tx)
         throw serializationError
       })
       await expect(
         withTransaction(db, fn, { maxRetries: 10 })
       ).rejects.toThrowError(serializationError)
-      await expect(getPetCount()).resolves.toBe(3)
+      await expect(getUserCount()).resolves.toBe(3)
       expect(fn).toHaveBeenCalledTimes(11)
     })
 
     it('does not retry if maxRetries is 0', async () => {
       const fn = jest.fn(async (tx: PoolClient) => {
-        await insertPet(tx)
+        await insertUser(tx)
         throw serializationError
       })
       await expect(
         withTransaction(db, fn, { maxRetries: 0 })
       ).rejects.toThrowError(serializationError)
-      await expect(getPetCount()).resolves.toBe(3)
+      await expect(getUserCount()).resolves.toBe(3)
       expect(fn).toHaveBeenCalledTimes(1)
     })
 
     it('does not retry on non-retryable errors', async () => {
       const fn = jest.fn(async (tx: PoolClient) => {
-        await insertPet(tx)
+        await insertUser(tx)
         throw new Error('Boom!')
       })
       await expect(withTransaction(db, fn)).rejects.toThrowError('Boom!')
-      await expect(getPetCount()).resolves.toBe(3)
+      await expect(getUserCount()).resolves.toBe(3)
       expect(fn).toHaveBeenCalledTimes(1)
     })
 
     it('supports custom shouldRetry predicates', async () => {
       const fn = jest.fn(async (tx: PoolClient) => {
-        await insertPet(tx)
+        await insertUser(tx)
         throw new Error('Boom!')
       })
       await expect(
         withTransaction(db, fn, { shouldRetry: () => true })
       ).rejects.toThrowError('Boom!')
-      await expect(getPetCount()).resolves.toBe(3)
+      await expect(getUserCount()).resolves.toBe(3)
       expect(fn).toHaveBeenCalledTimes(3)
     })
   })
@@ -415,9 +409,9 @@ describe('withSavepoint()', () => {
 
   it('rolls back the savepoint if an error is thrown', async () => {
     await withTransaction(db, async (tx) => {
-      await insertPet(tx)
+      await insertUser(tx)
       await withSavepoint(tx, async (tx) => {
-        await insertPet(tx)
+        await insertUser(tx)
         throw new Error('Boom!')
       })
         .then(() => {
@@ -427,29 +421,29 @@ describe('withSavepoint()', () => {
           expect(err.message).toBe('Boom!')
         })
     })
-    expect(await getPetCount()).toBe(4)
+    expect(await getUserCount()).toBe(4)
   })
 
   it('rethrows an error after rolling back', async () => {
     await expect(
       withTransaction(db, async (tx) => {
-        await insertPet(tx)
+        await insertUser(tx)
         await withSavepoint(tx, async (tx) => {
-          await insertPet(tx)
+          await insertUser(tx)
           throw new Error('Boom!')
         })
       })
     ).rejects.toThrowError(new Error('Boom!'))
-    expect(await getPetCount()).toBe(3)
+    expect(await getUserCount()).toBe(3)
   })
 
   it('can be nested (catch on 1st level)', async () => {
     await withTransaction(db, async (tx) => {
-      await insertPet(tx)
+      await insertUser(tx)
       await withSavepoint(tx, async (tx) => {
-        await insertPet(tx)
+        await insertUser(tx)
         await withSavepoint(tx, async (tx) => {
-          await insertPet(tx)
+          await insertUser(tx)
           throw new Error('Boom!')
         })
       })
@@ -460,16 +454,16 @@ describe('withSavepoint()', () => {
           expect(err.message).toBe('Boom!')
         })
     })
-    expect(await getPetCount()).toBe(4)
+    expect(await getUserCount()).toBe(4)
   })
 
   it('can be nested (catch on 2nd level)', async () => {
     await withTransaction(db, async (tx) => {
-      await insertPet(tx)
+      await insertUser(tx)
       await withSavepoint(tx, async (tx) => {
-        await insertPet(tx)
+        await insertUser(tx)
         await withSavepoint(tx, async (tx) => {
-          await insertPet(tx)
+          await insertUser(tx)
           throw new Error('Boom!')
         })
           .then(() => {
@@ -480,22 +474,22 @@ describe('withSavepoint()', () => {
           })
       })
     })
-    expect(await getPetCount()).toBe(5)
+    expect(await getUserCount()).toBe(5)
   })
 
   it('can be nested (no catch)', async () => {
     await expect(
       withTransaction(db, async (tx) => {
-        await insertPet(tx)
+        await insertUser(tx)
         await withSavepoint(tx, async (tx) => {
-          await insertPet(tx)
+          await insertUser(tx)
           await withSavepoint(tx, async (tx) => {
-            await insertPet(tx)
+            await insertUser(tx)
             throw new Error('Boom!')
           })
         })
       })
     ).rejects.toThrowError('Boom!')
-    expect(await getPetCount()).toBe(3)
+    expect(await getUserCount()).toBe(3)
   })
 })

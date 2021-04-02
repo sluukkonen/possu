@@ -355,7 +355,7 @@ const rowCount = await execute(db, sql`INSERT INTO users (name) VALUES ('Eve')`)
 #### withTransaction
 
 ```typescript
-<T>(client: Pool | PoolClient, queries: (tx: PoolClient) => PromiseLike<T>, options?: TransactionOptions) => Promise<T>
+<T>(pool: Pool, queries: (tx: PoolClient) => PromiseLike<T>, options?: TransactionOptions) => Promise<T>
 ```
 
 Execute a set of queries within a transaction.
