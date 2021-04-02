@@ -214,7 +214,7 @@ function isRetryableError(err: Error) {
   }
 }
 
-function isNoActiveTransactionError(err: DatabaseError) {
+function isNoActiveTransactionError(err: Error) {
   return err instanceof DatabaseError && err.code === noActiveSqlTransaction
 }
 
