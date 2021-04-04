@@ -124,6 +124,8 @@ Create an SQL query.
 This is the only way to create queries in Possu. To prevent accidental SQL injections, other
 Possu functions check at runtime that the query has been created with `sql`.
 
+**Example:**
+
 ```typescript
 const query = sql`SELECT * FROM users WHERE user_id = ${1}`
 // => SqlQuery { text: 'SELECT * FROM users WHERE user_id = $1', values: [1] }
@@ -172,6 +174,8 @@ Escape an SQL
 to be used in a query. It can be used to create queries which are
 parametrized by table or column names.
 
+**Example:**
+
 ```typescript
 sql`SELECT * FROM ${sql.identifier('users')}`
 // => SqlQuery { text: 'SELECT * FROM "users"', values: [] }
@@ -191,6 +195,8 @@ sql`SELECT * FROM users ORDER BY ${sql.identifier('name')} DESC`
 <!-- prettier-ignore-end -->
 
 Serialize a value as JSON to be used in a query.
+
+**Example:**
 
 ```typescript
 sql`SELECT * FROM jsonb_array_elements(${sql.json([1, 2, 3])})`
@@ -237,6 +243,8 @@ Execute a `SELECT` or other query that returns zero or more rows.
 
 Returns all rows.
 
+**Example:**
+
 ```typescript
 const users = await query(db, sql`SELECT * FROM users`)
 // => [{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }]
@@ -260,6 +268,8 @@ Execute a `SELECT` or other query that returns exactly one row.
 Returns the first row.
 
 - Throws a `ResultError` if query doesn't return exactly one row.
+
+**Example:**
 
 ```typescript
 const user = await queryOne(db, sql`SELECT * FROM users WHERE id = 1`)
@@ -293,6 +303,8 @@ Returns the first row or `undefined`.
 
 - Throws a `ResultError` if query returns more than 1 row.
 
+**Example:**
+
 ```typescript
 const user = await queryMaybeOne(db, sql`SELECT * FROM users WHERE id = 1`)
 // => { id: 1, name: 'Alice' }
@@ -317,6 +329,8 @@ const name = await queryMaybeOne(db, sql`SELECT name FROM users WHERE id = 1`)
 Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to return any rows.
 
 Returns the number of rows affected.
+
+**Example:**
 
 ```typescript
 const rowCount = await execute(db, sql`INSERT INTO users (name) VALUES ('Eve')`)
@@ -352,6 +366,8 @@ level](https://www.postgresql.org/docs/current/transaction-iso.html) of the
 transaction by supplying the `accessMode` and `isolationLevel` options,
 respectively.
 
+**Example:**
+
 ```typescript
 const userCount = await withTransaction(db, async (tx) => {
   await execute(tx, sql`INSERT INTO users (name) VALUES ('${'Alice'}')`)
@@ -376,6 +392,8 @@ If the function throws any kind of error, the savepoint is rolled back and
 the error is rethrown.
 
 May only be used within a transaction.
+
+**Example:**
 
 ```typescript
 await withTransaction(db, async (tx) => {
