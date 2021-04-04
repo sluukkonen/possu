@@ -111,8 +111,6 @@ to get an idea of its main features.
 
 ### Building queries
 
----
-
 #### sql
 
 <!-- prettier-ignore-start -->
@@ -241,8 +239,6 @@ const users = await query(db, sql`SELECT * FROM users`, User.check)
 // Type inferred to [{ id: number, name: string }]
 ```
 
----
-
 #### query
 
 ```typescript
@@ -356,8 +352,6 @@ const rowCount = await execute(db, sql`INSERT INTO users (name) VALUES ('Eve')`)
 ---
 
 ### Transaction handling
-
----
 
 #### withTransaction
 
