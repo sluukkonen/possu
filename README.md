@@ -161,6 +161,8 @@ sql`SELECT * FROM users`.prepare('fetch-users')
 // => SqlQuery { text: 'SELECT * FROM users', values: [], name: 'fetch-users' }
 ```
 
+---
+
 #### sql.identifier
 
 <!-- prettier-ignore-start -->
@@ -186,6 +188,8 @@ sql`SELECT * FROM users ORDER BY ${sql.identifier('name')} DESC`
 // => SqlQuery { text: 'SELECT * FROM users ORDER BY "name" DESC', values: [] }
 ```
 
+---
+
 #### sql.json
 
 <!-- prettier-ignore-start -->
@@ -202,6 +206,8 @@ Serialize a value as JSON to be used in a query.
 sql`SELECT * FROM jsonb_array_elements(${sql.json([1, 2, 3])})`
 // => SqlQuery { text : 'SELECT * FROM jsonb_array_elements($1)', values: ['[1,2,3]'] }
 ```
+
+---
 
 ### Executing queries
 
@@ -257,6 +263,8 @@ const names = await query(db, sql`SELECT name FROM users`)
 // => ['Alice', 'Bob']
 ```
 
+---
+
 #### queryOne
 
 ```typescript
@@ -291,6 +299,8 @@ const count = await queryOne(db, sql`SELECT count(*) FROM users`, Number)
 // => 3
 ```
 
+---
+
 #### queryMaybeOne
 
 ```typescript
@@ -320,6 +330,8 @@ const name = await queryMaybeOne(db, sql`SELECT name FROM users WHERE id = 1`)
 // => 'Alice'
 ```
 
+---
+
 #### execute
 
 ```typescript
@@ -336,6 +348,8 @@ Returns the number of rows affected.
 const rowCount = await execute(db, sql`INSERT INTO users (name) VALUES ('Eve')`)
 // => 1
 ```
+
+---
 
 ### Transaction handling
 
@@ -376,6 +390,8 @@ const userCount = await withTransaction(db, async (tx) => {
   return queryOne(tx, sql`SELECT count(*) FROM users`, Number)
 })
 ```
+
+---
 
 #### withSavepoint
 
