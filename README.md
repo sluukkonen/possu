@@ -238,8 +238,8 @@ const users = await query(db, sql`SELECT * FROM users`, User.check)
 // Type inferred to [{ id: number, name: string }]
 ```
 
-As an additional TypeScript helper, possu exports a [`Connection`](#connection) type, which can be used in your own
-query functions as a generic connection parameter. It is a type alias for `pg.Pool | pg.PoolClient`.
+As an additional TypeScript helper, possu exports a `Connection` type, which can be used in your own query functions as
+a generic connection parameter. It is a type alias for `pg.Pool | pg.PoolClient`.
 
 ```typescript
 import { Connection, query, sql } from 'possu'
@@ -249,10 +249,9 @@ export function getUsers(conn: Connection) {
 }
 ```
 
-For actions that must be performed inside an explicit transaction, Possu also provides a [`Transaction`](#transaction)
-type, which is just a regular `pg.PoolClient` with a type-level brand, which ensures that it is called inside a
-[`withTransaction`](#withTransaction) block. Using it is completely optional, but it may improve the readability and
-type-safety of your code.
+For actions that must be performed inside an explicit transaction, Possu also provides a `Transaction`
+type, which is just a regular `pg.PoolClient` with a type-level brand. Using it is completely optional, but it may
+improve the readability and type-safety of your code.
 
 ```typescript
 import { Transaction, query, sql } from 'possu'
