@@ -148,7 +148,7 @@ const query = sql`SELECT * FROM users ORDER BY name ${
 // => SqlQuery { text: 'SELECT * FROM users ORDER BY name ASC', values: [] }
 ```
 
-Calling the `.prepare()` method on a query causes it be executed as a prepared statement. 
+Calling the `.prepare()` method on a query causes it be executed as a prepared statement.
 
 This can sometimes have measurable performance benefits, especially if the query is very complex to parse and plan.
 
@@ -238,10 +238,35 @@ const users = await query(db, sql`SELECT * FROM users`, User.check)
 // Type inferred to [{ id: number, name: string }]
 ```
 
+As an additional TypeScript helper, possu exports a [`Connection`](#connection) type, which can be used in your own
+query functions as a generic connection parameter. It is a type alias for `pg.Pool | pg.PoolClient`.
+
+```typescript
+import { Connection, query, sql } from 'possu'
+
+export function getUsers(conn: Connection) {
+  return query(conn, sql`SELECT * FROM users`)
+}
+```
+
+For actions that must be performed inside an explicit transaction, Possu also provides a [`Transaction`](#transaction)
+type, which is just a regular `pg.PoolClient` with a type-level brand, which ensures that it is called inside a
+[`withTransaction`](#withTransaction) block. Using it is completely optional, but it may improve the readability and
+type-safety of your code.
+
+```typescript
+import { Transaction, query, sql } from 'possu'
+
+export async function insertTwoUsers(tx: Transaction) {
+  await execute(tx, sql`INSERT INTO users (name) VALUES ('Alice')`)
+  await execute(tx, sql`INSERT INTO users (name) VALUES ('Bob')`)
+}
+```
+
 #### query
 
 ```typescript
-<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T) => Promise<T[]>
+<T>(connection: Connection, query: SqlQuery, rowParser?: (row: unknown) => T) => Promise<T[]>
 ```
 
 Execute a `SELECT` or other query that returns zero or more rows.
@@ -267,7 +292,7 @@ const names = await query(db, sql`SELECT name FROM users`)
 #### queryOne
 
 ```typescript
-<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T) => Promise<T>
+<T>(connection: Connection, query: SqlQuery, rowParser?: (row: unknown) => T) => Promise<T>
 ```
 
 Execute a `SELECT` or other query that returns exactly one row.
@@ -303,7 +328,7 @@ const count = await queryOne(db, sql`SELECT count(*) FROM users`, Number)
 #### queryMaybeOne
 
 ```typescript
-<T>(client: Pool | PoolClient, query: SqlQuery, rowParser?: (row: unknown) => T) => Promise<T | undefined>
+<T>(connection: Connection, query: SqlQuery, rowParser?: (row: unknown) => T) => Promise<T | undefined>
 ```
 
 Execute a `SELECT` or other query that returns zero or one rows.
@@ -334,7 +359,7 @@ const name = await queryMaybeOne(db, sql`SELECT name FROM users WHERE id = 1`)
 #### execute
 
 ```typescript
-(client: Pool | PoolClient, query: SqlQuery) => Promise<number>
+(connection: Connection, query: SqlQuery) => Promise<number>
 ```
 
 Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to return any rows.
@@ -355,7 +380,7 @@ const rowCount = await execute(db, sql`INSERT INTO users (name) VALUES ('Eve')`)
 #### withTransaction
 
 ```typescript
-<T>(pool: Pool, queries: (tx: PoolClient) => PromiseLike<T>, options?: TransactionOptions) => Promise<T>
+<T>(pool: Pool, queries: (tx: Transaction) => PromiseLike<T>, options?: TransactionOptions) => Promise<T>
 ```
 
 Execute a set of queries within a transaction.
@@ -395,7 +420,7 @@ const userCount = await withTransaction(db, async (tx) => {
 #### withSavepoint
 
 ```typescript
-<T>(tx: PoolClient, queries: (tx: PoolClient) => PromiseLike<T>) => Promise<T>
+<T>(tx: Transaction, queries: (tx: Transaction) => PromiseLike<T>) => Promise<T>
 ```
 
 Execute a set of queries within a [savepoint](https://www.postgresql.org/docs/current/sql-savepoint.html).

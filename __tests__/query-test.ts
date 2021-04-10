@@ -8,6 +8,7 @@ import { MessageName } from 'pg-protocol/dist/messages'
 import {
   AccessMode,
   IsolationLevel,
+  Transaction,
   withSavepoint,
   withTransaction,
 } from '../src/transaction'
@@ -268,7 +269,7 @@ describe('transaction()', () => {
     it('validates shouldRetry', async () => {
       await expect(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        withTransaction(db, async (x) => x, { shouldRetry: 'yes' as any })
+        withTransaction(db, insertUser, { shouldRetry: 'yes' as any })
       ).rejects.toThrowError(new TypeError('shouldRetry must be a function!'))
     })
   })
@@ -384,7 +385,7 @@ describe('withSavepoint()', () => {
     const client = await db.connect()
     try {
       await expect(
-        withSavepoint(client, () => query(client, sql`SELECT 1`))
+        withSavepoint(client as Transaction, () => query(client, sql`SELECT 1`))
       ).rejects.toThrowError('SAVEPOINT can only be used in transaction blocks')
     } finally {
       client.release()

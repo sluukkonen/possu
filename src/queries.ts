@@ -1,23 +1,26 @@
-import { Pool, PoolClient, QueryResult } from 'pg'
+import * as pg from 'pg'
 import { ResultError } from './errors'
 import { SqlQuery } from './SqlQuery'
 import { coerce, map, mapField } from './util'
+
+/** A connection pool or a connection checked out of a pool. */
+export type Connection = pg.Pool | pg.PoolClient
 
 /**
  * Execute a `SELECT` or other query that returns zero or more rows.
  *
  * Returns all rows.
  *
- * @param client A connection pool or a client checked out from a pool.
+ * @param connection A connection pool or a connection checked out from a pool.
  * @param sql The SQL query to execute.
  * @param rowParser A function that validates and transforms each row.
  */
 export async function query<T>(
-  client: Pool | PoolClient,
+  connection: Connection,
   sql: SqlQuery,
   rowParser: (row: unknown) => T = coerce
 ): Promise<T[]> {
-  const { fields, rows } = await send(client, sql)
+  const { fields, rows } = await send(connection, sql)
 
   if (fields.length !== 1) {
     return rowParser === coerce ? rows : map(rowParser, rows)
@@ -33,16 +36,16 @@ export async function query<T>(
  *
  * - Throws a `ResultError` if query does not return exactly one row.
  *
- * @param client A connection pool or a client checked out from a pool.
+ * @param connection A connection pool or a connection checked out from a pool.
  * @param sql The SQL query to execute.
  * @param rowParser A function that validates and transforms the row.
  */
 export async function queryOne<T = unknown>(
-  client: Pool | PoolClient,
+  connection: Connection,
   sql: SqlQuery,
   rowParser: (row: unknown) => T = coerce
 ): Promise<T> {
-  const { fields, rows } = await send(client, sql)
+  const { fields, rows } = await send(connection, sql)
   const { length } = rows
 
   if (length !== 1) {
@@ -64,16 +67,16 @@ export async function queryOne<T = unknown>(
  *
  * - Throws a `ResultError` if query returns more than 1 row.
  *
- * @param client A connection pool or a client checked out from a pool.
+ * @param connection A connection pool or a connection checked out from a pool.
  * @param sql The SQL query to execute.
  * @param rowParser A function that validates and transforms each row.
  */
 export async function queryMaybeOne<T = unknown>(
-  client: Pool | PoolClient,
+  connection: Connection,
   sql: SqlQuery,
   rowParser: (row: unknown) => T = coerce
 ): Promise<T | undefined> {
-  const { fields, rows } = await send(client, sql)
+  const { fields, rows } = await send(connection, sql)
   const { length } = rows
 
   if (length > 1) {
@@ -95,23 +98,23 @@ export async function queryMaybeOne<T = unknown>(
  *
  * Returns the number of rows affected.
  *
- * @param client A connection pool or a client checked out from a pool.
+ * @param connection A connection pool or a connection checked out from a pool.
  * @param sql The SQL query to execute.
  */
 export async function execute(
-  client: Pool | PoolClient,
+  connection: Connection,
   sql: SqlQuery
 ): Promise<number> {
-  const { rowCount } = await send(client, sql)
+  const { rowCount } = await send(connection, sql)
   return rowCount
 }
 
-function send(client: Pool | PoolClient, sql: SqlQuery): Promise<QueryResult> {
+function send(connection: Connection, sql: SqlQuery): Promise<pg.QueryResult> {
   if (!(sql instanceof SqlQuery)) {
     throw new TypeError(
       'The query was not constructed with the `sql` tagged template literal'
     )
   }
 
-  return client.query(sql)
+  return connection.query(sql)
 }

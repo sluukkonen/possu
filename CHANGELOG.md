@@ -9,12 +9,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added an ```sql`...`.prepare('query-name')``` method for creating prepared statements. This can
+- Added an `` sql`...`.prepare('query-name') `` method for creating prepared statements. This can
   sometimes have measurable performance benefits, especially if the query is very complex to parse and plan.
-  
+- Added a `Connection` type alias for `pg.Pool | pg.PoolClient`. It is designed to be used in your query functions as
+  a generic connection type.
+
+```typescript
+import { Connection, query, sql } from 'possu'
+
+export function getUsers(conn: Connection) {
+  return query(conn, sql`SELECT * FROM users`)
+}
+```
+
+- Added `Transaction` type. It is just a regular `pg.PoolClient` with a type-level brand, which indicates that the
+  connection has an active transaction. It can be used as additional type safety in functions that must be called within
+  a transaction.
+
+```typescript
+import { Transaction, query, sql } from 'possu'
+
+export async function insertTwoUsers(tx: Transaction) {
+  await execute(tx, sql`INSERT INTO users (name) VALUES ('Alice')`)
+  await execute(tx, sql`INSERT INTO users (name) VALUES ('Bob')`)
+}
+```
+
 ### Changed
 
 - Changed [`withTransaction`](README.md#withtransaction) to only take a connection pool as the first argument.
+- Changed [`withSavePoint`](README.me#withSavepoint) to take a `Transaction` as the first parameter.
 
 ## [0.10.0] - 2021-03-31
 

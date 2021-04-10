@@ -1,10 +1,17 @@
-import { Pool, PoolClient } from 'pg'
+import * as pg from 'pg'
 import { DatabaseError } from 'pg-protocol'
 import { isFunction } from './util'
 
 const serializationFailure = '40001'
 const deadlockDetected = '40P01'
 const noActiveSqlTransaction = '25P01'
+
+/**
+ * A connection that has an active transaction.
+ *
+ * Note that the `__transaction` property exists purely at the type level.
+ */
+export type Transaction = pg.PoolClient & { readonly __possuTransaction: true }
 
 /**
  * The isolation level to use within a transaction.
@@ -107,8 +114,8 @@ const defaultTransactionOptions: TransactionOptions = {}
  * @param options An optional options object.
  */
 export async function withTransaction<T>(
-  pool: Pool,
-  queries: (tx: PoolClient) => PromiseLike<T>,
+  pool: pg.Pool,
+  queries: (tx: Transaction) => PromiseLike<T>,
   options: TransactionOptions = defaultTransactionOptions
 ): Promise<T> {
   const begin = getBegin(options.isolationLevel, options.accessMode)
@@ -181,15 +188,15 @@ function getMaxRetries(maxRetries?: number): number {
 }
 
 async function performTransaction<T>(
-  tx: PoolClient,
+  tx: pg.PoolClient,
   begin: string,
-  queries: (tx: PoolClient) => PromiseLike<T>,
+  queries: (tx: Transaction) => PromiseLike<T>,
   shouldRetry: (err: Error) => boolean,
   maxRetries: number
 ): Promise<T> {
   try {
     await tx.query(begin)
-    const result = await queries(tx)
+    const result = await queries(tx as Transaction)
     await tx.query('COMMIT')
     return result
   } catch (err) {
@@ -228,12 +235,12 @@ function isNoActiveTransactionError(err: Error) {
  *
  * May only be used within a transaction.
  *
- * @param tx A client belonging to a transaction.
+ * @param tx A connection belonging to a transaction.
  * @param queries A set of queries to execute within the savepoint.
  */
 export async function withSavepoint<T>(
-  tx: PoolClient,
-  queries: (tx: PoolClient) => PromiseLike<T>
+  tx: Transaction,
+  queries: (tx: Transaction) => PromiseLike<T>
 ): Promise<T> {
   try {
     await tx.query('SAVEPOINT possu_savepoint')
