@@ -249,9 +249,9 @@ export function getUsers(conn: Connection) {
 }
 ```
 
-For actions that must be performed inside an explicit transaction, Possu also provides a `Transaction`
-type, which is just a regular `pg.PoolClient` with a type-level brand. Using it is completely optional, but it may
-improve the readability and type-safety of your code.
+For actions that must be performed within a transaction, Possu also provides a `Transaction` type, which is just a
+regular `pg.PoolClient` with a type-level brand. Using it is completely optional, but it may improve the readability and
+type-safety of your code.
 
 ```typescript
 import { Transaction, query, sql } from 'possu'
