@@ -31,7 +31,7 @@
     "pg": "^8.4.0"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.21",
+    "@types/jest": "^27.0.3",
     "@typescript-eslint/eslint-plugin": "^4.4.0",
     "@typescript-eslint/parser": "^4.4.0",
     "eslint": "^7.10.0",
