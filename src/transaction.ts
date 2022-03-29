@@ -84,7 +84,7 @@ export interface TransactionOptions {
    * PostgreSQL errors codes `40001` (serialization failure) and `40P01`
    * (deadlock detected) are considered to be retryable.
    */
-  shouldRetry?: (err: Error) => boolean
+  shouldRetry?: (error: unknown) => boolean
 }
 
 const defaultTransactionOptions: TransactionOptions = {}
@@ -166,7 +166,7 @@ function getAccessMode(accessMode?: AccessMode): string {
   }
 }
 
-function getShouldRetry(shouldRetry?: (err: Error) => boolean) {
+function getShouldRetry(shouldRetry?: (error: unknown) => boolean) {
   if (shouldRetry === undefined) {
     return isRetryableError
   } else if (!isFunction(shouldRetry)) {
@@ -190,7 +190,7 @@ async function performTransaction<T>(
   tx: pg.PoolClient,
   begin: string,
   queries: (tx: Transaction) => PromiseLike<T>,
-  shouldRetry: (err: Error) => boolean,
+  shouldRetry: (error: unknown) => boolean,
   maxRetries: number
 ): Promise<T> {
   try {
@@ -209,9 +209,9 @@ async function performTransaction<T>(
   }
 }
 
-function isRetryableError(err: Error) {
-  if (err instanceof pg.DatabaseError) {
-    const code = err.code
+function isRetryableError(error: unknown) {
+  if (error instanceof pg.DatabaseError) {
+    const code = error.code
     return code === serializationFailure || code === deadlockDetected
   } else {
     return false
