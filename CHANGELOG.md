@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Bump the minimum required version of `pg` and `@types/pg` to 8.6.0.
 - Change ``sql`...`.prepare('query-name')`` to return a new copy of the query instead of mutating it.
+- Bump minimum Node.js version to 12.x
 
 ## [0.11.0] - 2021-04-10
 
