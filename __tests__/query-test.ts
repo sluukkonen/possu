@@ -1,9 +1,8 @@
-import { Pool, PoolClient } from 'pg'
+import { Pool, PoolClient, DatabaseError } from 'pg'
 import { ResultError } from '../src/errors'
 import { execute, query, queryMaybeOne, queryOne } from '../src/queries'
 import { sql } from '../src/sql'
 import { SqlQuery } from '../src/SqlQuery'
-import { DatabaseError } from 'pg-protocol'
 import { MessageName } from 'pg-protocol/dist/messages'
 import {
   AccessMode,
@@ -275,10 +274,10 @@ describe('transaction()', () => {
   })
 
   describe('retrying', () => {
-    const serializationError = new DatabaseError('', 0, MessageName.error)
+    const serializationError = new DatabaseError('', 0, 'error')
     serializationError.code = '40001'
 
-    const deadlockDetectedError = new DatabaseError('', 0, MessageName.error)
+    const deadlockDetectedError = new DatabaseError('', 0, 'error')
     deadlockDetectedError.code = '40P01'
 
     it.each([[serializationError], [deadlockDetectedError]])(
