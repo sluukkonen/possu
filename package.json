@@ -27,7 +27,7 @@
     "dist"
   ],
   "dependencies": {
-    "@types/pg": "^7.14.5",
+    "@types/pg": "^8.0.0",
     "pg": "^8.4.0"
   },
   "devDependencies": {
