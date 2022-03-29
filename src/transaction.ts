@@ -1,5 +1,4 @@
 import * as pg from 'pg'
-import { DatabaseError } from 'pg-protocol'
 import { isFunction } from './util'
 
 const serializationFailure = '40001'
@@ -211,7 +210,7 @@ async function performTransaction<T>(
 }
 
 function isRetryableError(err: Error) {
-  if (err instanceof DatabaseError) {
+  if (err instanceof pg.DatabaseError) {
     const code = err.code
     return code === serializationFailure || code === deadlockDetected
   } else {
@@ -220,7 +219,7 @@ function isRetryableError(err: Error) {
 }
 
 function isNoActiveTransactionError(err: Error) {
-  return err instanceof DatabaseError && err.code === noActiveSqlTransaction
+  return err instanceof pg.DatabaseError && err.code === noActiveSqlTransaction
 }
 
 /**
