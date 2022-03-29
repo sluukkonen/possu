@@ -7,7 +7,7 @@ export class SqlQuery {
   /** The values of the query. */
   values: unknown[]
   /** The name of the query. */
-  name?: string;
+  name: string;
   /** @internal */
   [partsSymbol]: TemplateStringsArray;
   /** @internal */
@@ -16,11 +16,13 @@ export class SqlQuery {
   constructor(
     text: string,
     values: unknown[],
+    name: string,
     parts: TemplateStringsArray,
     rawValues: readonly unknown[]
   ) {
     this.text = text
     this.values = values
+    this.name = name
     Object.defineProperty(this, partsSymbol, { value: parts })
     Object.defineProperty(this, rawValuesSymbol, { value: rawValues })
   }
@@ -41,8 +43,13 @@ export class SqlQuery {
    * ```
    *
    */
-  prepare(name: string): this {
-    this.name = name
-    return this
+  prepare(name: string): SqlQuery {
+    return new SqlQuery(
+      this.text,
+      this.values,
+      name,
+      this[partsSymbol],
+      this[rawValuesSymbol]
+    )
   }
 }

@@ -59,7 +59,7 @@ export const sql: Sql = function sql(
 
   sqlInner(text, values, parts, rawValues, getPlaceholder)
 
-  return new SqlQuery(text.join(''), values, parts, rawValues)
+  return new SqlQuery(text.join(''), values, '', parts, rawValues)
 }
 
 /** The recursive inner loop for `sql`. */
