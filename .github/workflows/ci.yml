@@ -26,7 +26,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [10.x, 12.x, 14.x]
+        node-version: [12.x, 14.x, 16.x, 17.x]
 
     steps:
       - uses: actions/checkout@v3
@@ -41,19 +41,4 @@ jobs:
           key: yarn-${{ matrix.node-version }}-${{ hashFiles('**/yarn.lock') }}
       - run: yarn --frozen-lockfile
       - run: yarn test
-
-  lint:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js 14
-        uses: actions/setup-node@v3
-        with:
-          node-version: 14.x
-      - name: Restore cache
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: yarn-14.x-${{ hashFiles('**/yarn.lock') }}
-      - run: yarn --frozen-lockfile
       - run: yarn lint
