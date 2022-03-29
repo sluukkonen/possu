@@ -3,7 +3,6 @@ import { ResultError } from '../src/errors'
 import { execute, query, queryMaybeOne, queryOne } from '../src/queries'
 import { sql } from '../src/sql'
 import { SqlQuery } from '../src/SqlQuery'
-import { MessageName } from 'pg-protocol/dist/messages'
 import {
   AccessMode,
   IsolationLevel,
