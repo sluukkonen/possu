@@ -211,19 +211,22 @@ async function performTransaction<T>(
   shouldRetry: (error: unknown) => boolean,
   maxRetries: number
 ): Promise<T> {
-  try {
-    await tx.query(begin)
-    const result = await queries(tx as Transaction)
-    await tx.query('COMMIT')
-    return result
-  } catch (err) {
-    await tx.query('ROLLBACK')
+  for (;;) {
+    try {
+      await tx.query(begin)
+      const result = await queries(tx as Transaction)
+      await tx.query('COMMIT')
+      return result
+    } catch (err) {
+      await tx.query('ROLLBACK')
 
-    if (maxRetries > 0 && shouldRetry(err)) {
-      return performTransaction(tx, begin, queries, shouldRetry, maxRetries - 1)
+      if (maxRetries > 0 && shouldRetry(err)) {
+        maxRetries -= 1
+        continue
+      }
+
+      throw err
     }
-
-    throw err
   }
 }
 
