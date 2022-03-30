@@ -232,6 +232,16 @@ describe('transaction()', () => {
     )
   })
 
+  it('catches errors emitted by the client', async () => {
+    await expect(
+      withTransaction(db, async (tx) => {
+        tx.emit('error', new Error('Boom!'))
+        await insertUser(tx)
+      })
+    ).rejects.toThrow(new Error('Boom!'))
+    await expect(getUserCount()).resolves.toBe(3)
+  })
+
   it('throws an error and does not execute the function if it fails to check out a connection from the pool', async () => {
     const failPool = new Pool({ port: 54321 })
     const fn = jest.fn()

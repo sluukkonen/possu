@@ -13,7 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change ``sql`...`.prepare('query-name')`` to return a new copy of the query instead of mutating it.
 - Bump minimum Node.js version to 12.x
 - Change the signature of the `shouldRetry` option of `withTransaction` from `(error: Error) => boolean` to
-  `(error: unknown) => boolean`.
+  `(error: unknown) => boolean`. This matches
+  the [default error type of catch clauses in TypeScript 4.4](https://devblogs.microsoft.com/typescript/announcing-typescript-4-4/#use-unknown-catch-variables).
+- Catch any errors emitted by the client in `withTransaction`. A `pg.Client` is an EventEmitter, which will crash the
+  Node.js process if it emits an error an if there are no error listeners. Possu will now automatically install an error
+  handler that catches any errors emitted by the client during the transaction. Any errors are returned in the promise.
 
 ## [0.11.0] - 2021-04-10
 

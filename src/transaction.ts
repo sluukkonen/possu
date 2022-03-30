@@ -122,11 +122,29 @@ export async function withTransaction<T>(
   const maxRetries = getMaxRetries(options.maxRetries)
   const tx = await pool.connect()
 
-  try {
-    return await performTransaction(tx, begin, queries, shouldRetry, maxRetries)
-  } finally {
-    tx.release()
-  }
+  return new Promise((resolve, reject) => {
+    let errored = false
+    const onError = (error: unknown) => {
+      // Ensure the client is released only once.
+      if (errored) return
+      errored = true
+      tx.removeListener('error', onError)
+      tx.release(true)
+      reject(error)
+    }
+    const onResult = (result: T) => {
+      tx.removeListener('error', onError)
+      tx.release()
+      resolve(result)
+    }
+
+    tx.once('error', onError)
+
+    performTransaction(tx, begin, queries, shouldRetry, maxRetries).then(
+      onResult,
+      onError
+    )
+  })
 }
 
 function getBegin(
