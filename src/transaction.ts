@@ -218,7 +218,7 @@ function isRetryableError(error: unknown) {
   }
 }
 
-function isNoActiveTransactionError(err: Error) {
+function isNoActiveTransactionError(err: unknown) {
   return err instanceof pg.DatabaseError && err.code === noActiveSqlTransaction
 }
 
