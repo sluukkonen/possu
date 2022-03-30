@@ -407,16 +407,12 @@ describe('withSavepoint()', () => {
   it('rolls back the savepoint if an error is thrown', async () => {
     await withTransaction(db, async (tx) => {
       await insertUser(tx)
-      await withSavepoint(tx, async (tx) => {
-        await insertUser(tx)
-        throw new Error('Boom!')
-      })
-        .then(() => {
-          throw new Error('Should not happen!')
+      await expect(
+        withSavepoint(tx, async (tx) => {
+          await insertUser(tx)
+          throw new Error('Boom!')
         })
-        .catch((err) => {
-          expect(err.message).toBe('Boom!')
-        })
+      ).rejects.toThrow(new Error('Boom!'))
     })
     expect(await getUserCount()).toBe(4)
   })
@@ -437,19 +433,15 @@ describe('withSavepoint()', () => {
   it('can be nested (catch on 1st level)', async () => {
     await withTransaction(db, async (tx) => {
       await insertUser(tx)
-      await withSavepoint(tx, async (tx) => {
-        await insertUser(tx)
-        await withSavepoint(tx, async (tx) => {
+      await expect(
+        withSavepoint(tx, async (tx) => {
           await insertUser(tx)
-          throw new Error('Boom!')
+          await withSavepoint(tx, async (tx) => {
+            await insertUser(tx)
+            throw new Error('Boom!')
+          })
         })
-      })
-        .then(() => {
-          throw new Error('Should not happen!')
-        })
-        .catch((err) => {
-          expect(err.message).toBe('Boom!')
-        })
+      ).rejects.toThrow(new Error('Boom!'))
     })
     expect(await getUserCount()).toBe(4)
   })
@@ -459,16 +451,12 @@ describe('withSavepoint()', () => {
       await insertUser(tx)
       await withSavepoint(tx, async (tx) => {
         await insertUser(tx)
-        await withSavepoint(tx, async (tx) => {
-          await insertUser(tx)
-          throw new Error('Boom!')
-        })
-          .then(() => {
-            throw new Error('Should not happen!')
+        await expect(
+          withSavepoint(tx, async (tx) => {
+            await insertUser(tx)
+            throw new Error('Boom!')
           })
-          .catch((err) => {
-            expect(err.message).toBe('Boom!')
-          })
+        ).rejects.toThrow(new Error('Boom!'))
       })
     })
     expect(await getUserCount()).toBe(5)
