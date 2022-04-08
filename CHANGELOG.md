@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+- Add new [`executeOne`](README.md#executeone) and [`executeMaybeOne`](README.md#executeMaybeOne) functions as the duals
+  of [`queryOne`](README.md#queryOne) and [`queryMaybeOne`](README.md#queryMaybeOne). They will throw a `ResultError` 
+  if the query modifies different than the expected amount of rows.
+
 ## [0.12.0] - 2022-03-30
 
 ### Changed

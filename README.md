@@ -33,6 +33,8 @@ A small companion library for [node-postgres](https://node-postgres.com/).
     - [queryOne](#queryOne)
     - [queryMaybeOne](#queryMaybeOne)
     - [execute](#execute)
+    - [executeOne](#executeOne)
+    - [executeMaybeOne](#executeMaybeOne)
   - [Transaction handling](#transaction-handling)
     - [withTransaction](#withTransaction)
     - [withSavepoint](#withSavepoint)
@@ -268,9 +270,7 @@ export async function insertTwoUsers(tx: Transaction) {
 <T>(connection: Connection, query: SqlQuery, rowParser?: (row: unknown) => T) => Promise<T[]>
 ```
 
-Execute a `SELECT` or other query that returns zero or more rows.
-
-Returns all rows.
+Execute a `SELECT` or other query that returns zero or more rows. Returns all rows.
 
 **Example:**
 
@@ -294,9 +294,7 @@ const names = await query(db, sql`SELECT name FROM users`)
 <T>(connection: Connection, query: SqlQuery, rowParser?: (row: unknown) => T) => Promise<T>
 ```
 
-Execute a `SELECT` or other query that returns exactly one row.
-
-Returns the first row.
+Execute a `SELECT` or other query that returns exactly one row. Returns the first row.
 
 - Throws a `ResultError` if query doesn't return exactly one row.
 
@@ -330,9 +328,7 @@ const count = await queryOne(db, sql`SELECT count(*) FROM users`, Number)
 <T>(connection: Connection, query: SqlQuery, rowParser?: (row: unknown) => T) => Promise<T | undefined>
 ```
 
-Execute a `SELECT` or other query that returns zero or one rows.
-
-Returns the first row or `undefined`.
+Execute a `SELECT` or other query that returns zero or one rows. Returns the first row or `undefined`.
 
 - Throws a `ResultError` if query returns more than 1 row.
 
@@ -361,9 +357,8 @@ const name = await queryMaybeOne(db, sql`SELECT name FROM users WHERE id = 1`)
 (connection: Connection, query: SqlQuery) => Promise<number>
 ```
 
-Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to return any rows.
-
-Returns the number of rows affected.
+Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to return any rows. Returns the number of
+rows affected.
 
 **Example:**
 
@@ -373,6 +368,50 @@ const rowCount = await execute(db, sql`INSERT INTO users (name) VALUES ('Eve')`)
 ```
 
 ---
+
+#### executeOne
+
+```typescript
+(tx: Transaction, query: SqlQuery) => Promise<number>
+```
+
+Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to return any rows. Returns the number of
+rows affected.
+
+- Throws a `ResultError` if the query doesn't affect exactly one row. 
+- Unlike [`execute`](#execute), it must be called within an explicit transaction, so the changes can be rolled back.
+
+**Example:**
+
+```typescript
+await withTransaction(db, (tx) => {
+  return executeOne(tx, sql`UPDATE users SET name = 'Bob' WHERE id = 1`)
+})
+// => 1
+```
+
+---
+
+#### executeMaybeOne
+
+```typescript
+(tx: Transaction, query: SqlQuery) => Promise<number>
+```
+
+Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to return any rows. Returns the number of
+rows affected.
+
+- Throws a `ResultError` if the query affects more than one row. 
+- Unlike [`execute`](#execute), it must be called within an explicit transaction, so the changes can be rolled back.
+
+**Example:**
+
+```typescript
+await withTransaction(db, (tx) => {
+  return executeMaybeOne(tx, sql`UPDATE users SET name = 'Bob' WHERE id = 1`)
+})
+// => 1
+```
 
 ### Transaction handling
 

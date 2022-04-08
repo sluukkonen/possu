@@ -1,6 +1,13 @@
 import { Pool, PoolClient, DatabaseError } from 'pg'
 import { ResultError } from '../src/errors'
-import { execute, query, queryMaybeOne, queryOne } from '../src/queries'
+import {
+  execute,
+  executeMaybeOne,
+  executeOne,
+  query,
+  queryMaybeOne,
+  queryOne,
+} from '../src/queries'
 import { sql } from '../src/sql'
 import { SqlQuery } from '../src/SqlQuery'
 import {
@@ -114,7 +121,10 @@ describe('queryOne()', () => {
     const query = sql`SELECT * FROM users`
 
     return expect(queryOne(db, query)).rejects.toThrowError(
-      new ResultError('Expected query to return exactly 1 row, got 3', query)
+      new ResultError(
+        'Expected query to return exactly 1 row, got 3 rows',
+        query
+      )
     )
   })
 
@@ -122,7 +132,10 @@ describe('queryOne()', () => {
     const query = sql`SELECT * FROM users WHERE name = ${'Nobody'}`
 
     return expect(queryOne(db, query)).rejects.toThrowError(
-      new ResultError('Expected query to return exactly 1 row, got 0', query)
+      new ResultError(
+        'Expected query to return exactly 1 row, got 0 rows',
+        query
+      )
     )
   })
 
@@ -164,7 +177,7 @@ describe('queryMaybeOne()', () => {
   it('throws an error if the result contains too many rows', () => {
     const query = sql`SELECT * FROM users`
     return expect(queryMaybeOne(db, query)).rejects.toThrowError(
-      new ResultError('Expected query to return 0–1 rows, got 3', query)
+      new ResultError('Expected query to return 0–1 rows, got 3 rows', query)
     )
   })
 
@@ -195,6 +208,62 @@ describe('execute()', () => {
     await expect(
       execute(db, sql`INSERT INTO users (name) VALUES ('Bethany'), ('Fae')`)
     ).resolves.toBe(2)
+  })
+})
+
+describe('executeOne()', () => {
+  it('executes a query and resolves successfully if rowCount is 1', async () => {
+    await expect(
+      withTransaction(db, (tx) =>
+        executeOne(tx, sql`INSERT INTO users (name) VALUES ('Bethany')`)
+      )
+    ).resolves.toBe(1)
+    await expect(getUserCount()).resolves.toBe(4)
+  })
+
+  it('throws an error if rowCount is not 1', async () => {
+    const query = sql`INSERT INTO users (name) VALUES ('Bethany'), ('Fae')`
+    await expect(
+      withTransaction(db, (tx) => executeOne(tx, query))
+    ).rejects.toThrow(
+      new ResultError(
+        'Expected query to modify exactly 1 row, but it modified 2 rows',
+        query
+      )
+    )
+  })
+})
+
+describe('executeMaybeOne()', () => {
+  it('executes a query and resolves successfully if rowCount is 0', async () => {
+    await expect(
+      withTransaction(db, (tx) =>
+        executeMaybeOne(tx, sql`UPDATE users SET name = 'Bert' WHERE false`)
+      )
+    ).resolves.toBe(0)
+    await expect(getUserCount()).resolves.toBe(3)
+  })
+
+  it('executes a query and resolves successfully if rowCount is 1', async () => {
+    await expect(
+      withTransaction(db, (tx) =>
+        executeMaybeOne(tx, sql`INSERT INTO users (name) VALUES ('Bethany')`)
+      )
+    ).resolves.toBe(1)
+    await expect(getUserCount()).resolves.toBe(4)
+  })
+
+  it('throws an error if rowCount is not 1', async () => {
+    const query = sql`INSERT INTO users (name) VALUES ('Bethany'), ('Fae')`
+    await expect(
+      withTransaction(db, (tx) => executeMaybeOne(tx, query))
+    ).rejects.toThrow(
+      new ResultError(
+        'Expected query to modify 0–1 rows, but it modified 2 rows',
+        query
+      )
+    )
+    await expect(getUserCount()).resolves.toBe(3)
   })
 })
 
