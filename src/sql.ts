@@ -50,34 +50,33 @@ export const sql: Sql = function sql(
   ...rawValues: readonly unknown[]
 ) {
   // The text of the query as a mutable array.
-  const text: string[] = []
   // The final parts array. It may be different than the original values array
   // if queries are nested.
   const values: unknown[] = []
   let placeholderIndex = 1
   const getPlaceholder = () => `$${placeholderIndex++}`
 
-  sqlInner(text, values, parts, rawValues, getPlaceholder)
+  const text = sqlInner('', values, parts, rawValues, getPlaceholder)
 
-  return new SqlQuery(text.join(''), values, '', parts, rawValues)
+  return new SqlQuery(text, values, '', parts, rawValues)
 }
 
 /** The recursive inner loop for `sql`. */
 function sqlInner(
-  text: string[],
+  text: string,
   values: unknown[],
   parts: TemplateStringsArray,
   rawValues: readonly unknown[],
   getPlaceholder: () => string
-) {
-  text.push(parts[0])
+): string {
+  text += parts[0]
 
   for (let i = 1; i < parts.length; i++) {
     const part = parts[i]
     const rawValue = rawValues[i - 1]
 
     if (rawValue instanceof SqlQuery) {
-      sqlInner(
+      text = sqlInner(
         text,
         values,
         rawValue[partsSymbol],
@@ -86,14 +85,16 @@ function sqlInner(
       )
       // If the query was nested, do not add a placeholder, since we replace it
       // with the nested query's text.
-      text.push(part)
+      text += part
     } else if (rawValue instanceof Identifier) {
-      text.push(rawValue.text, part)
+      text += rawValue.text + part
     } else {
-      text.push(getPlaceholder(), part)
+      text += getPlaceholder() + part
       values.push(rawValue)
     }
   }
+
+  return text
 }
 
 sql.identifier = function identifier(identifier: string) {
