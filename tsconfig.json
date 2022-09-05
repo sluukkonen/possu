@@ -9,7 +9,7 @@
     "skipLibCheck": true,
     "stripInternal": true,
     "strict": true,
-    "target": "ES2018"
+    "target": "ES2022"
   },
   "include": ["./src/**/*"],
   "exclude": ["dist", "node_modules"]
