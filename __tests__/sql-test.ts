@@ -82,7 +82,7 @@ describe('sql.identifier()', () => {
 
   it('validates that the identifier is a string', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect(() => sql.identifier(null as any)).toThrowError(
+    expect(() => sql.identifier(null as any)).toThrow(
       new TypeError('Invalid identifier: null')
     )
   })

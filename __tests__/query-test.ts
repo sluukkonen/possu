@@ -120,7 +120,7 @@ describe('queryOne()', () => {
   it('throws an error if the result contains too many rows', () => {
     const query = sql`SELECT * FROM users`
 
-    return expect(queryOne(db, query)).rejects.toThrowError(
+    return expect(queryOne(db, query)).rejects.toThrow(
       new ResultError(
         'Expected query to return exactly 1 row, got 3 rows',
         query
@@ -131,7 +131,7 @@ describe('queryOne()', () => {
   it('throws an error if the result is empty', () => {
     const query = sql`SELECT * FROM users WHERE name = ${'Nobody'}`
 
-    return expect(queryOne(db, query)).rejects.toThrowError(
+    return expect(queryOne(db, query)).rejects.toThrow(
       new ResultError(
         'Expected query to return exactly 1 row, got 0 rows',
         query
@@ -176,7 +176,7 @@ describe('queryMaybeOne()', () => {
 
   it('throws an error if the result contains too many rows', () => {
     const query = sql`SELECT * FROM users`
-    return expect(queryMaybeOne(db, query)).rejects.toThrowError(
+    return expect(queryMaybeOne(db, query)).rejects.toThrow(
       new ResultError('Expected query to return 0–1 rows, got 3 rows', query)
     )
   })
@@ -288,7 +288,7 @@ describe('transaction()', () => {
         await insertUser(tx)
         throw new Error('Boom!')
       })
-    ).rejects.toThrowError(new Error('Boom!'))
+    ).rejects.toThrow(new Error('Boom!'))
     await expect(getUserCount()).resolves.toBe(3)
   })
 
@@ -296,9 +296,7 @@ describe('transaction()', () => {
     await expect(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       withTransaction(db, (tx) => (insertUser(tx) as any).than(Number)) // Intentional typo
-    ).rejects.toThrowError(
-      new TypeError('insertUser(...).than is not a function')
-    )
+    ).rejects.toThrow(new TypeError('insertUser(...).than is not a function'))
   })
 
   it('catches errors emitted by the client', async () => {
@@ -323,20 +321,20 @@ describe('transaction()', () => {
       await expect(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         withTransaction(db, async (x) => x, { isolationLevel: null as any })
-      ).rejects.toThrowError(new TypeError('Invalid isolation level: null'))
+      ).rejects.toThrow(new TypeError('Invalid isolation level: null'))
     })
 
     it('validates accessMode', async () => {
       await expect(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         withTransaction(db, async (x) => x, { accessMode: null as any })
-      ).rejects.toThrowError(new TypeError('Invalid access mode: null'))
+      ).rejects.toThrow(new TypeError('Invalid access mode: null'))
     })
 
     it('validates maxRetries', async () => {
       await expect(
         withTransaction(db, async (x) => x, { maxRetries: -1 })
-      ).rejects.toThrowError(
+      ).rejects.toThrow(
         new TypeError('maxRetries must be a non-negative integer!')
       )
     })
@@ -345,7 +343,7 @@ describe('transaction()', () => {
       await expect(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         withTransaction(db, insertUser, { shouldRetry: 'yes' as any })
-      ).rejects.toThrowError(new TypeError('shouldRetry must be a function!'))
+      ).rejects.toThrow(new TypeError('shouldRetry must be a function!'))
     })
   })
 
@@ -363,7 +361,7 @@ describe('transaction()', () => {
           await insertUser(tx)
           throw error
         })
-        await expect(withTransaction(db, fn)).rejects.toThrowError(error)
+        await expect(withTransaction(db, fn)).rejects.toThrow(error)
         await expect(getUserCount()).resolves.toBe(3)
         expect(fn).toHaveBeenCalledTimes(3)
       }
@@ -374,9 +372,9 @@ describe('transaction()', () => {
         await insertUser(tx)
         throw serializationError
       })
-      await expect(
-        withTransaction(db, fn, { maxRetries: 10 })
-      ).rejects.toThrowError(serializationError)
+      await expect(withTransaction(db, fn, { maxRetries: 10 })).rejects.toThrow(
+        serializationError
+      )
       await expect(getUserCount()).resolves.toBe(3)
       expect(fn).toHaveBeenCalledTimes(11)
     })
@@ -386,9 +384,9 @@ describe('transaction()', () => {
         await insertUser(tx)
         throw serializationError
       })
-      await expect(
-        withTransaction(db, fn, { maxRetries: 0 })
-      ).rejects.toThrowError(serializationError)
+      await expect(withTransaction(db, fn, { maxRetries: 0 })).rejects.toThrow(
+        serializationError
+      )
       await expect(getUserCount()).resolves.toBe(3)
       expect(fn).toHaveBeenCalledTimes(1)
     })
@@ -398,7 +396,7 @@ describe('transaction()', () => {
         await insertUser(tx)
         throw new Error('Boom!')
       })
-      await expect(withTransaction(db, fn)).rejects.toThrowError('Boom!')
+      await expect(withTransaction(db, fn)).rejects.toThrow('Boom!')
       await expect(getUserCount()).resolves.toBe(3)
       expect(fn).toHaveBeenCalledTimes(1)
     })
@@ -410,7 +408,7 @@ describe('transaction()', () => {
       })
       await expect(
         withTransaction(db, fn, { shouldRetry: () => true })
-      ).rejects.toThrowError('Boom!')
+      ).rejects.toThrow('Boom!')
       await expect(getUserCount()).resolves.toBe(3)
       expect(fn).toHaveBeenCalledTimes(3)
     })
@@ -454,14 +452,14 @@ describe('withSavepoint()', () => {
     await expect(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       withSavepoint(db as any, () => query(db, sql`SELECT 1`))
-    ).rejects.toThrowError('SAVEPOINT can only be used in transaction blocks')
+    ).rejects.toThrow('SAVEPOINT can only be used in transaction blocks')
   })
   it('throws an error if called outside a transaction', async () => {
     const client = await db.connect()
     try {
       await expect(
         withSavepoint(client as Transaction, () => query(client, sql`SELECT 1`))
-      ).rejects.toThrowError('SAVEPOINT can only be used in transaction blocks')
+      ).rejects.toThrow('SAVEPOINT can only be used in transaction blocks')
     } finally {
       client.release()
     }
@@ -505,7 +503,7 @@ describe('withSavepoint()', () => {
           throw new Error('Boom!')
         })
       })
-    ).rejects.toThrowError(new Error('Boom!'))
+    ).rejects.toThrow(new Error('Boom!'))
     expect(await getUserCount()).toBe(3)
   })
 
@@ -553,7 +551,7 @@ describe('withSavepoint()', () => {
           })
         })
       })
-    ).rejects.toThrowError('Boom!')
+    ).rejects.toThrow('Boom!')
     expect(await getUserCount()).toBe(3)
   })
 })
