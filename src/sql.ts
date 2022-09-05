@@ -1,4 +1,4 @@
-import { SqlQuery, partsSymbol, rawValuesSymbol } from './SqlQuery'
+import { SqlQuery } from './SqlQuery'
 import { Client } from 'pg'
 import { isString } from './util'
 
@@ -79,8 +79,8 @@ function sqlInner(
       text = sqlInner(
         text,
         values,
-        rawValue[partsSymbol],
-        rawValue[rawValuesSymbol],
+        rawValue.getParts(),
+        rawValue.getRawValues(),
         getPlaceholder
       )
       // If the query was nested, do not add a placeholder, since we replace it

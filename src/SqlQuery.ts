@@ -1,30 +1,29 @@
-export const partsSymbol = Symbol('parts')
-export const rawValuesSymbol = Symbol('rawValues')
-
 export class SqlQuery {
-  /** The text of the query. */
-  text: string
-  /** The values of the query. */
-  values: unknown[]
-  /** The name of the query. */
-  name: string;
-  /** @internal */
-  [partsSymbol]: TemplateStringsArray;
-  /** @internal */
-  [rawValuesSymbol]: readonly unknown[]
+  readonly #parts: TemplateStringsArray
+  readonly #rawValues: readonly unknown[]
 
   constructor(
-    text: string,
-    values: unknown[],
-    name: string,
+    /** The text of the query. */
+    readonly text: string,
+    /** The values of the query. */
+    readonly values: unknown[],
+    /** The name of the query. */
+    readonly name: string,
     parts: TemplateStringsArray,
     rawValues: readonly unknown[]
   ) {
-    this.text = text
-    this.values = values
-    this.name = name
-    Object.defineProperty(this, partsSymbol, { value: parts })
-    Object.defineProperty(this, rawValuesSymbol, { value: rawValues })
+    this.#parts = parts
+    this.#rawValues = rawValues
+  }
+
+  /** @internal */
+  getParts(): TemplateStringsArray {
+    return this.#parts
+  }
+
+  /** @internal */
+  getRawValues(): readonly unknown[] {
+    return this.#rawValues
   }
 
   /**
@@ -48,8 +47,8 @@ export class SqlQuery {
       this.text,
       this.values,
       name,
-      this[partsSymbol],
-      this[rawValuesSymbol]
+      this.#parts,
+      this.#rawValues
     )
   }
 }
