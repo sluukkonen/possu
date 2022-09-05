@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
 - Add new [`executeOne`](README.md#executeone) and [`executeMaybeOne`](README.md#executeMaybeOne) functions as the duals
   of [`queryOne`](README.md#queryOne) and [`queryMaybeOne`](README.md#queryMaybeOne). They will throw a `ResultError` 
   if the query modifies different than the expected amount of rows.
+
+### Changed
+
+- Drop support for Node 12.x
 
 ## [0.12.0] - 2022-03-30
 
