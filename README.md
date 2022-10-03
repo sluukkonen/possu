@@ -8,7 +8,7 @@ A small companion library for [node-postgres](https://node-postgres.com/).
 
 ## Features & Goals
 
-- A Promise-based API, which aims to reduce common boilerplate
+- A Promise-based API, which aims to reduce boilerplate code
 - Write raw SQL queries with tagged template strings
 - Prevent most types of accidental SQL injection vulnerabilities
 - Transaction and savepoint handling, including retrying in case of
