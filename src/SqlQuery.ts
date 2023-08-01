@@ -10,7 +10,7 @@ export class SqlQuery {
     /** The name of the query. */
     readonly name: string,
     parts: TemplateStringsArray,
-    rawValues: readonly unknown[]
+    rawValues: readonly unknown[],
   ) {
     this.#parts = parts
     this.#rawValues = rawValues
@@ -48,7 +48,7 @@ export class SqlQuery {
       this.values,
       name,
       this.#parts,
-      this.#rawValues
+      this.#rawValues,
     )
   }
 }

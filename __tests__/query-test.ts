@@ -27,7 +27,7 @@ beforeAll(async () => {
     `CREATE TABLE users (
       id serial PRIMARY KEY,
       name text
-    )`
+    )`,
   )
 })
 
@@ -37,8 +37,8 @@ beforeEach(async () => {
   await withTransaction(db, (tx) =>
     execute(
       tx,
-      sql`TRUNCATE TABLE users RESTART IDENTITY; INSERT INTO users (name) VALUES ('Alice'), ('Bob'), ('Charlie')`
-    )
+      sql`TRUNCATE TABLE users RESTART IDENTITY; INSERT INTO users (name) VALUES ('Alice'), ('Bob'), ('Charlie')`,
+    ),
   )
 })
 
@@ -62,8 +62,8 @@ describe('validation', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await expect(fn(db, params as any)).rejects.toThrow(
           new TypeError(
-            'The query was not constructed with the `sql` tagged template literal'
-          )
+            'The query was not constructed with the `sql` tagged template literal',
+          ),
         )
       }
     }
@@ -87,14 +87,14 @@ describe('query()', () => {
 
   it('supports an optional row parser', async () => {
     await expect(
-      query(db, sql`SELECT * FROM users`, JSON.stringify)
+      query(db, sql`SELECT * FROM users`, JSON.stringify),
     ).resolves.toEqual([
       JSON.stringify({ id: 1, name: 'Alice' }),
       JSON.stringify({ id: 2, name: 'Bob' }),
       JSON.stringify({ id: 3, name: 'Charlie' }),
     ])
     await expect(
-      query(db, sql`SELECT name FROM users`, JSON.stringify)
+      query(db, sql`SELECT name FROM users`, JSON.stringify),
     ).resolves.toEqual([
       JSON.stringify('Alice'),
       JSON.stringify('Bob'),
@@ -106,7 +106,7 @@ describe('query()', () => {
 describe('queryOne()', () => {
   it('executes a query and returns the first row', () =>
     expect(
-      queryOne(db, sql`SELECT * FROM users WHERE name = ${'Alice'}`)
+      queryOne(db, sql`SELECT * FROM users WHERE name = ${'Alice'}`),
     ).resolves.toEqual({
       id: 1,
       name: 'Alice',
@@ -114,7 +114,7 @@ describe('queryOne()', () => {
 
   it('unwraps the value if selecting a single column', () =>
     expect(
-      queryOne(db, sql`SELECT name FROM users WHERE id = ${1}`)
+      queryOne(db, sql`SELECT name FROM users WHERE id = ${1}`),
     ).resolves.toEqual('Alice'))
 
   it('throws an error if the result contains too many rows', () => {
@@ -123,8 +123,8 @@ describe('queryOne()', () => {
     return expect(queryOne(db, query)).rejects.toThrow(
       new ResultError(
         'Expected query to return exactly 1 row, got 3 rows',
-        query
-      )
+        query,
+      ),
     )
   })
 
@@ -134,8 +134,8 @@ describe('queryOne()', () => {
     return expect(queryOne(db, query)).rejects.toThrow(
       new ResultError(
         'Expected query to return exactly 1 row, got 0 rows',
-        query
-      )
+        query,
+      ),
     )
   })
 
@@ -144,11 +144,11 @@ describe('queryOne()', () => {
       queryOne(
         db,
         sql`SELECT * FROM users WHERE name = ${'Alice'}`,
-        JSON.stringify
-      )
+        JSON.stringify,
+      ),
     ).resolves.toEqual(JSON.stringify({ id: 1, name: 'Alice' }))
     await expect(
-      queryOne(db, sql`SELECT count(*) FROM users`, Number)
+      queryOne(db, sql`SELECT count(*) FROM users`, Number),
     ).resolves.toEqual(3)
   })
 })
@@ -156,28 +156,28 @@ describe('queryOne()', () => {
 describe('queryMaybeOne()', () => {
   it('executes a query and returns the first row, if it exists', () =>
     expect(
-      queryMaybeOne(db, sql`SELECT * FROM users WHERE name = ${'Alice'}`)
+      queryMaybeOne(db, sql`SELECT * FROM users WHERE name = ${'Alice'}`),
     ).resolves.toEqual({ id: 1, name: 'Alice' }))
 
   it('unwraps the value if selecting a single column', () =>
     expect(
-      queryMaybeOne(db, sql`SELECT name FROM users WHERE id = ${1}`)
+      queryMaybeOne(db, sql`SELECT name FROM users WHERE id = ${1}`),
     ).resolves.toEqual('Alice'))
 
   it('executes a query and returns undefined if the result is empty', async () => {
     await expect(
-      queryMaybeOne(db, sql`SELECT * FROM users WHERE name = ${'Nobody'}`)
+      queryMaybeOne(db, sql`SELECT * FROM users WHERE name = ${'Nobody'}`),
     ).resolves.toBeUndefined()
 
     await expect(
-      queryMaybeOne(db, sql`SELECT name FROM users WHERE name = ${'Nobody'}`)
+      queryMaybeOne(db, sql`SELECT name FROM users WHERE name = ${'Nobody'}`),
     ).resolves.toBeUndefined()
   })
 
   it('throws an error if the result contains too many rows', () => {
     const query = sql`SELECT * FROM users`
     return expect(queryMaybeOne(db, query)).rejects.toThrow(
-      new ResultError('Expected query to return 0–1 rows, got 3 rows', query)
+      new ResultError('Expected query to return 0–1 rows, got 3 rows', query),
     )
   })
 
@@ -186,15 +186,15 @@ describe('queryMaybeOne()', () => {
       queryMaybeOne(
         db,
         sql`SELECT * FROM users WHERE name = ${'Alice'}`,
-        JSON.stringify
-      )
+        JSON.stringify,
+      ),
     ).resolves.toEqual(JSON.stringify({ id: 1, name: 'Alice' }))
     await expect(
       queryMaybeOne(
         db,
         sql`SELECT name FROM users WHERE name = ${'Alice'}`,
-        JSON.stringify
-      )
+        JSON.stringify,
+      ),
     ).resolves.toEqual(JSON.stringify('Alice'))
   })
 })
@@ -202,11 +202,11 @@ describe('queryMaybeOne()', () => {
 describe('execute()', () => {
   it('executes a query and returns the number of rows affected', async () => {
     await expect(
-      execute(db, sql`INSERT INTO users (name) VALUES ('Bethany')`)
+      execute(db, sql`INSERT INTO users (name) VALUES ('Bethany')`),
     ).resolves.toBe(1)
 
     await expect(
-      execute(db, sql`INSERT INTO users (name) VALUES ('Bethany'), ('Fae')`)
+      execute(db, sql`INSERT INTO users (name) VALUES ('Bethany'), ('Fae')`),
     ).resolves.toBe(2)
   })
 })
@@ -215,8 +215,8 @@ describe('executeOne()', () => {
   it('executes a query and resolves successfully if rowCount is 1', async () => {
     await expect(
       withTransaction(db, (tx) =>
-        executeOne(tx, sql`INSERT INTO users (name) VALUES ('Bethany')`)
-      )
+        executeOne(tx, sql`INSERT INTO users (name) VALUES ('Bethany')`),
+      ),
     ).resolves.toBe(1)
     await expect(getUserCount()).resolves.toBe(4)
   })
@@ -224,12 +224,12 @@ describe('executeOne()', () => {
   it('throws an error if rowCount is not 1', async () => {
     const query = sql`INSERT INTO users (name) VALUES ('Bethany'), ('Fae')`
     await expect(
-      withTransaction(db, (tx) => executeOne(tx, query))
+      withTransaction(db, (tx) => executeOne(tx, query)),
     ).rejects.toThrow(
       new ResultError(
         'Expected query to modify exactly 1 row, but it modified 2 rows',
-        query
-      )
+        query,
+      ),
     )
   })
 })
@@ -238,8 +238,8 @@ describe('executeMaybeOne()', () => {
   it('executes a query and resolves successfully if rowCount is 0', async () => {
     await expect(
       withTransaction(db, (tx) =>
-        executeMaybeOne(tx, sql`UPDATE users SET name = 'Bert' WHERE false`)
-      )
+        executeMaybeOne(tx, sql`UPDATE users SET name = 'Bert' WHERE false`),
+      ),
     ).resolves.toBe(0)
     await expect(getUserCount()).resolves.toBe(3)
   })
@@ -247,8 +247,8 @@ describe('executeMaybeOne()', () => {
   it('executes a query and resolves successfully if rowCount is 1', async () => {
     await expect(
       withTransaction(db, (tx) =>
-        executeMaybeOne(tx, sql`INSERT INTO users (name) VALUES ('Bethany')`)
-      )
+        executeMaybeOne(tx, sql`INSERT INTO users (name) VALUES ('Bethany')`),
+      ),
     ).resolves.toBe(1)
     await expect(getUserCount()).resolves.toBe(4)
   })
@@ -256,12 +256,12 @@ describe('executeMaybeOne()', () => {
   it('throws an error if rowCount is not 1', async () => {
     const query = sql`INSERT INTO users (name) VALUES ('Bethany'), ('Fae')`
     await expect(
-      withTransaction(db, (tx) => executeMaybeOne(tx, query))
+      withTransaction(db, (tx) => executeMaybeOne(tx, query)),
     ).rejects.toThrow(
       new ResultError(
         'Expected query to modify 0–1 rows, but it modified 2 rows',
-        query
-      )
+        query,
+      ),
     )
     await expect(getUserCount()).resolves.toBe(3)
   })
@@ -287,7 +287,7 @@ describe('transaction()', () => {
       withTransaction(db, async (tx) => {
         await insertUser(tx)
         throw new Error('Boom!')
-      })
+      }),
     ).rejects.toThrow(new Error('Boom!'))
     await expect(getUserCount()).resolves.toBe(3)
   })
@@ -295,7 +295,7 @@ describe('transaction()', () => {
   it('rolls back the transaction if the function throws an error', async () => {
     await expect(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      withTransaction(db, (tx) => (insertUser(tx) as any).than(Number)) // Intentional typo
+      withTransaction(db, (tx) => (insertUser(tx) as any).than(Number)), // Intentional typo
     ).rejects.toThrow(new TypeError('insertUser(...).than is not a function'))
   })
 
@@ -304,7 +304,7 @@ describe('transaction()', () => {
       withTransaction(db, async (tx) => {
         tx.emit('error', new Error('Boom!'))
         await insertUser(tx)
-      })
+      }),
     ).rejects.toThrow(new Error('Boom!'))
     await expect(getUserCount()).resolves.toBe(3)
   })
@@ -320,29 +320,29 @@ describe('transaction()', () => {
     it('validates isolationLevel', async () => {
       await expect(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        withTransaction(db, async (x) => x, { isolationLevel: null as any })
+        withTransaction(db, async (x) => x, { isolationLevel: null as any }),
       ).rejects.toThrow(new TypeError('Invalid isolation level: null'))
     })
 
     it('validates accessMode', async () => {
       await expect(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        withTransaction(db, async (x) => x, { accessMode: null as any })
+        withTransaction(db, async (x) => x, { accessMode: null as any }),
       ).rejects.toThrow(new TypeError('Invalid access mode: null'))
     })
 
     it('validates maxRetries', async () => {
       await expect(
-        withTransaction(db, async (x) => x, { maxRetries: -1 })
+        withTransaction(db, async (x) => x, { maxRetries: -1 }),
       ).rejects.toThrow(
-        new TypeError('maxRetries must be a non-negative integer!')
+        new TypeError('maxRetries must be a non-negative integer!'),
       )
     })
 
     it('validates shouldRetry', async () => {
       await expect(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        withTransaction(db, insertUser, { shouldRetry: 'yes' as any })
+        withTransaction(db, insertUser, { shouldRetry: 'yes' as any }),
       ).rejects.toThrow(new TypeError('shouldRetry must be a function!'))
     })
   })
@@ -364,7 +364,7 @@ describe('transaction()', () => {
         await expect(withTransaction(db, fn)).rejects.toThrow(error)
         await expect(getUserCount()).resolves.toBe(3)
         expect(fn).toHaveBeenCalledTimes(3)
-      }
+      },
     )
 
     it('retries queries upto maxRetries times', async () => {
@@ -373,7 +373,7 @@ describe('transaction()', () => {
         throw serializationError
       })
       await expect(withTransaction(db, fn, { maxRetries: 10 })).rejects.toThrow(
-        serializationError
+        serializationError,
       )
       await expect(getUserCount()).resolves.toBe(3)
       expect(fn).toHaveBeenCalledTimes(11)
@@ -385,7 +385,7 @@ describe('transaction()', () => {
         throw serializationError
       })
       await expect(withTransaction(db, fn, { maxRetries: 0 })).rejects.toThrow(
-        serializationError
+        serializationError,
       )
       await expect(getUserCount()).resolves.toBe(3)
       expect(fn).toHaveBeenCalledTimes(1)
@@ -407,7 +407,7 @@ describe('transaction()', () => {
         throw new Error('Boom!')
       })
       await expect(
-        withTransaction(db, fn, { shouldRetry: () => true })
+        withTransaction(db, fn, { shouldRetry: () => true }),
       ).rejects.toThrow('Boom!')
       await expect(getUserCount()).resolves.toBe(3)
       expect(fn).toHaveBeenCalledTimes(3)
@@ -433,17 +433,17 @@ describe('transaction()', () => {
             db,
             async (tx) => {
               expect(await queryOne(tx, sql`SHOW transaction_isolation`)).toBe(
-                isolationLevelResult
+                isolationLevelResult,
               )
               expect(await queryOne(tx, sql`SHOW transaction_read_only`)).toBe(
-                accessModeResult
+                accessModeResult,
               )
             },
-            { isolationLevel, accessMode: accessMode }
+            { isolationLevel, accessMode: accessMode },
           )
-        }
+        },
       )
-    }
+    },
   )
 })
 
@@ -451,14 +451,16 @@ describe('withSavepoint()', () => {
   it('throws an error if called with a pool', async () => {
     await expect(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      withSavepoint(db as any, () => query(db, sql`SELECT 1`))
+      withSavepoint(db as any, () => query(db, sql`SELECT 1`)),
     ).rejects.toThrow('SAVEPOINT can only be used in transaction blocks')
   })
   it('throws an error if called outside a transaction', async () => {
     const client = await db.connect()
     try {
       await expect(
-        withSavepoint(client as Transaction, () => query(client, sql`SELECT 1`))
+        withSavepoint(client as Transaction, () =>
+          query(client, sql`SELECT 1`),
+        ),
       ).rejects.toThrow('SAVEPOINT can only be used in transaction blocks')
     } finally {
       client.release()
@@ -467,7 +469,7 @@ describe('withSavepoint()', () => {
 
   it('returns the value from the function', async () => {
     await expect(
-      withTransaction(db, (tx) => withSavepoint(tx, async () => 'foo'))
+      withTransaction(db, (tx) => withSavepoint(tx, async () => 'foo')),
     ).resolves.toBe('foo')
   })
 
@@ -476,8 +478,8 @@ describe('withSavepoint()', () => {
       withTransaction(db, (tx) =>
         withSavepoint(tx, async () => {
           throw null
-        })
-      )
+        }),
+      ),
     ).rejects.toBeNull()
   })
 
@@ -488,7 +490,7 @@ describe('withSavepoint()', () => {
         withSavepoint(tx, async (tx) => {
           await insertUser(tx)
           throw new Error('Boom!')
-        })
+        }),
       ).rejects.toThrow(new Error('Boom!'))
     })
     expect(await getUserCount()).toBe(4)
@@ -502,7 +504,7 @@ describe('withSavepoint()', () => {
           await insertUser(tx)
           throw new Error('Boom!')
         })
-      })
+      }),
     ).rejects.toThrow(new Error('Boom!'))
     expect(await getUserCount()).toBe(3)
   })
@@ -517,7 +519,7 @@ describe('withSavepoint()', () => {
             await insertUser(tx)
             throw new Error('Boom!')
           })
-        })
+        }),
       ).rejects.toThrow(new Error('Boom!'))
     })
     expect(await getUserCount()).toBe(4)
@@ -532,7 +534,7 @@ describe('withSavepoint()', () => {
           withSavepoint(tx, async (tx) => {
             await insertUser(tx)
             throw new Error('Boom!')
-          })
+          }),
         ).rejects.toThrow(new Error('Boom!'))
       })
     })
@@ -550,7 +552,7 @@ describe('withSavepoint()', () => {
             throw new Error('Boom!')
           })
         })
-      })
+      }),
     ).rejects.toThrow('Boom!')
     expect(await getUserCount()).toBe(3)
   })

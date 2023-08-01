@@ -115,7 +115,7 @@ const defaultTransactionOptions: TransactionOptions = {}
 export async function withTransaction<T>(
   pool: pg.Pool,
   queries: (tx: Transaction) => PromiseLike<T>,
-  options: TransactionOptions = defaultTransactionOptions
+  options: TransactionOptions = defaultTransactionOptions,
 ): Promise<T> {
   const begin = getBegin(options.isolationLevel, options.accessMode)
   const shouldRetry = getShouldRetry(options.shouldRetry)
@@ -142,14 +142,14 @@ export async function withTransaction<T>(
 
     performTransaction(tx, begin, queries, shouldRetry, maxRetries).then(
       onResult,
-      onError
+      onError,
     )
   })
 }
 
 function getBegin(
   isolationLevel?: IsolationLevel,
-  accessMode?: AccessMode
+  accessMode?: AccessMode,
 ): string {
   return 'BEGIN' + getIsolationLevel(isolationLevel) + getAccessMode(accessMode)
 }
@@ -209,7 +209,7 @@ async function performTransaction<T>(
   begin: string,
   queries: (tx: Transaction) => PromiseLike<T>,
   shouldRetry: (error: unknown) => boolean,
-  maxRetries: number
+  maxRetries: number,
 ): Promise<T> {
   for (;;) {
     try {
@@ -260,7 +260,7 @@ function isNoActiveTransactionError(err: unknown) {
  */
 export async function withSavepoint<T>(
   tx: Transaction,
-  queries: (tx: Transaction) => PromiseLike<T>
+  queries: (tx: Transaction) => PromiseLike<T>,
 ): Promise<T> {
   try {
     await tx.query('SAVEPOINT possu_savepoint')
@@ -270,7 +270,7 @@ export async function withSavepoint<T>(
   } catch (err) {
     if (!isNoActiveTransactionError(err)) {
       await tx.query(
-        'ROLLBACK TO SAVEPOINT possu_savepoint; RELEASE SAVEPOINT possu_savepoint'
+        'ROLLBACK TO SAVEPOINT possu_savepoint; RELEASE SAVEPOINT possu_savepoint',
       )
     }
 

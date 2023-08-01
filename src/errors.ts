@@ -8,7 +8,10 @@ PossuError.prototype.name = 'PossuError'
  * An error signifying that a query returned an unexpected result.
  */
 export class ResultError extends PossuError {
-  constructor(message: string, public query: SqlQuery) {
+  constructor(
+    message: string,
+    public query: SqlQuery,
+  ) {
     super(message)
   }
 }

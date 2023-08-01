@@ -67,7 +67,7 @@ function sqlInner(
   values: unknown[],
   parts: TemplateStringsArray,
   rawValues: readonly unknown[],
-  getPlaceholder: () => string
+  getPlaceholder: () => string,
 ): string {
   text += parts[0]
 
@@ -81,7 +81,7 @@ function sqlInner(
         values,
         rawValue.getParts(),
         rawValue.getRawValues(),
-        getPlaceholder
+        getPlaceholder,
       )
       // If the query was nested, do not add a placeholder, since we replace it
       // with the nested query's text.

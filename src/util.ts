@@ -3,7 +3,7 @@ export function isString(value: unknown): value is string {
 }
 
 export function isFunction(
-  value: unknown
+  value: unknown,
 ): value is (...args: unknown[]) => unknown {
   return typeof value === 'function'
 }
@@ -26,7 +26,7 @@ export function mapField<
   K extends string,
   T,
   U,
-  A extends readonly Record<K, T>[]
+  A extends readonly Record<K, T>[],
 >(name: K, rowParser: (value: T) => U, rows: A): U[] {
   const result = new Array<U>(rows.length)
 

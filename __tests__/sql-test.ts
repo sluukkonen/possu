@@ -25,7 +25,7 @@ describe('sql()', () => {
     })
 
     expect(
-      sql`SELECT * FROM pet WHERE id = ${id} OR name = ${name}`
+      sql`SELECT * FROM pet WHERE id = ${id} OR name = ${name}`,
     ).toMatchObject({
       text: 'SELECT * FROM pet WHERE id = $1 OR name = $2',
       values: [1, 'Iiris'],
@@ -41,7 +41,7 @@ describe('sql()', () => {
 
   it('supports parametrized nested queries', () => {
     expect(
-      sql`SELECT ${1}, exists(${sql`SELECT * FROM pet WHERE id = ${2}`}) OR ${3} = ${4}`
+      sql`SELECT ${1}, exists(${sql`SELECT * FROM pet WHERE id = ${2}`}) OR ${3} = ${4}`,
     ).toMatchObject({
       text: 'SELECT $1, exists(SELECT * FROM pet WHERE id = $2) OR $3 = $4',
       values: [1, 2, 3, 4],
@@ -73,7 +73,7 @@ describe('sql()', () => {
 describe('sql.identifier()', () => {
   it('escapes an identifier to be used in a query', () => {
     expect(
-      sql`SELECT * FROM ${sql.identifier('pet')} WHERE id = ${1}`
+      sql`SELECT * FROM ${sql.identifier('pet')} WHERE id = ${1}`,
     ).toMatchObject({
       text: 'SELECT * FROM "pet" WHERE id = $1',
       values: [1],
@@ -83,7 +83,7 @@ describe('sql.identifier()', () => {
   it('validates that the identifier is a string', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(() => sql.identifier(null as any)).toThrow(
-      new TypeError('Invalid identifier: null')
+      new TypeError('Invalid identifier: null'),
     )
   })
 })
@@ -91,7 +91,7 @@ describe('sql.identifier()', () => {
 describe('sql.json()', () => {
   it('serializes a value with JSON.stringify', () => {
     expect(
-      sql`SELECT * FROM jsonb_array_elements(${sql.json([1, 2, 3])})`
+      sql`SELECT * FROM jsonb_array_elements(${sql.json([1, 2, 3])})`,
     ).toMatchObject({
       text: 'SELECT * FROM jsonb_array_elements($1)',
       values: ['[1,2,3]'],
@@ -102,7 +102,7 @@ describe('sql.json()', () => {
 describe('sql`...`.prepare()', () => {
   it('adds a name property to the query', () => {
     expect(
-      sql`SELECT * FROM pet WHERE id = ${1}`.prepare('fetch-pet')
+      sql`SELECT * FROM pet WHERE id = ${1}`.prepare('fetch-pet'),
     ).toMatchObject({
       text: 'SELECT * FROM pet WHERE id = $1',
       values: [1],
