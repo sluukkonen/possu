@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Exported the `Sql` interface. Thanks [@timosaikkonen](https://github.com/timosaikkonen).
 
+### Changed
+
+- Drop support for Node 14.x
+
 ## [1.0.0] - 2022-09-22
 
 ### Added
