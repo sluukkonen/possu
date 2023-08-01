@@ -1,3 +1,4 @@
+version: "3.8"
 services:
   postgres:
     image: postgres:latest
@@ -8,7 +9,7 @@ services:
     ports:
       - 5432:5432
     healthcheck:
-      test: pg_isready
+      test: pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER
       interval: 1s
       timeout: 1s
       retries: 60
