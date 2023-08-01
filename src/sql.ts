@@ -9,7 +9,7 @@ class Identifier {
 }
 
 /** The query builder interface of Possu. */
-interface Sql {
+export interface Sql {
   (parts: TemplateStringsArray, ...rawValues: readonly unknown[]): SqlQuery
 
   /**
