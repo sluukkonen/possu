@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Exported the `Sql` interface. Thanks @timosaikkonen.
+- Exported the `Sql` interface. Thanks [@timosaikkonen](https://github.com/timosaikkonen).
 
 ## [1.0.0] - 2022-09-22
 
