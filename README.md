@@ -375,8 +375,8 @@ const rowCount = await execute(db, sql`INSERT INTO users (name) VALUES ('Eve')`)
 (tx: Transaction, query: SqlQuery) => Promise<number>
 ```
 
-Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to return any rows. Returns the number of
-rows affected.
+Execute an `INSERT`, `UPDATE`, `DELETE` or other query that affects exactly one row. Returns the number of rows
+affected (1).
 
 - Throws a `ResultError` if the query doesn't affect exactly one row. 
 - Unlike [`execute`](#execute), it must be called within an explicit transaction, so the changes can be rolled back.
@@ -398,7 +398,7 @@ await withTransaction(db, (tx) => {
 (tx: Transaction, query: SqlQuery) => Promise<number>
 ```
 
-Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to return any rows. Returns the number of
+Execute an `INSERT`, `UPDATE`, `DELETE` or other query that affects zero or one rows. Returns the number of
 rows affected.
 
 - Throws a `ResultError` if the query affects more than one row. 

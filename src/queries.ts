@@ -104,11 +104,12 @@ export async function execute(
 }
 
 /**
- * Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to return any rows. Returns the number
- * of rows affected.
+ * Execute an `INSERT`, `UPDATE`, `DELETE` or other query that affects exactly
+ * one row. Returns the number of rows affected (1).
  *
  * - Throws a {@link ResultError} if the query doesn't affect exactly one row.
- * - Unlike {@link execute}, it must be called within an explicit transaction, so the changes can be rolled back.
+ * - Unlike {@link execute}, it must be called within an explicit transaction,
+ * so the changes can be rolled back.
  *
  * @param tx A connection belonging to an active transaction.
  * @param sql The SQL query to execute.
@@ -129,11 +130,12 @@ export async function executeOne(
 }
 
 /**
- * Execute an `INSERT`, `UPDATE`, `DELETE` or other query that is not expected to return any rows. Returns the number
- * of rows affected.
+ * Execute an `INSERT`, `UPDATE`, `DELETE` or other query that affects zero or
+ * one rows. Returns the number of rows affected.
  *
  * - Throws a {@link ResultError} if the query affects more than one row.
- * - Unlike {@link execute}, it must be called within an explicit transaction, so the changes can be rolled back.
+ * - Unlike {@link execute}, it must be called within an explicit transaction,
+ * so the changes can be rolled back.
  *
  * @param tx A connection belonging to an active transaction.
  * @param sql The SQL query to execute.
