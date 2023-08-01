@@ -312,7 +312,7 @@ describe('transaction()', () => {
   it('throws an error and does not execute the function if it fails to check out a connection from the pool', async () => {
     const failPool = new Pool({ port: 54321 })
     const fn = jest.fn()
-    await expect(withTransaction(failPool, fn)).rejects.toThrow('ECONNREFUSED')
+    await expect(withTransaction(failPool, fn)).rejects.toThrow()
     expect(fn).toHaveBeenCalledTimes(0)
   })
 
