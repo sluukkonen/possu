@@ -7,10 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [3.0.0] - 2023-09-16
+
 ### Changed
 
 - Added an `exports` section to package.json, so you can no longer import internal Possu modules (
-  e.g. `import SqlQuery from "possu/dist/SqlQuery"`).
+  e.g. `import SqlQuery from "possu/dist/SqlQuery"`). Technically, this should not be a breaking change, since the
+  internal functions are not a part of the public API.
 
 ## [2.0.0] - 2023-08-01
 
