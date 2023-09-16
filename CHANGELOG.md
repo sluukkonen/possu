@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- Added an `exports` section to package.json, so you can no longer import internal Possu modules (
+  e.g. `import SqlQuery from "possu/dist/SqlQuery"`).
+
 ## [2.0.0] - 2023-08-01
 
 ### Added
@@ -20,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add new [`executeOne`](README.md#executeone) and [`executeMaybeOne`](README.md#executeMaybeOne) functions as the duals
-  of [`queryOne`](README.md#queryOne) and [`queryMaybeOne`](README.md#queryMaybeOne). They will throw a `ResultError` 
+  of [`queryOne`](README.md#queryOne) and [`queryMaybeOne`](README.md#queryMaybeOne). They will throw a `ResultError`
   if the query modifies different than the expected amount of rows.
 
 ### Changed
@@ -45,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added an `` sql`...`.prepare('query-name') `` method for creating prepared statements. This can
+- Added an ``sql`...`.prepare('query-name')`` method for creating prepared statements. This can
   sometimes have measurable performance benefits, especially if the query is very complex to parse and plan.
 - Added a `Connection` type alias for `pg.Pool | pg.PoolClient`. It is designed to be used in your query functions as
   a generic connection type.
