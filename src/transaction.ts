@@ -140,10 +140,9 @@ export async function withTransaction<T>(
 
     tx.once('error', onError)
 
-    performTransaction(tx, begin, queries, shouldRetry, maxRetries).then(
-      onResult,
-      onError,
-    )
+    performTransaction(tx, begin, queries, shouldRetry, maxRetries)
+      .then(onResult)
+      .catch(onError)
   })
 }
 
