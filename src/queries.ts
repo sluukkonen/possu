@@ -84,8 +84,8 @@ export async function queryMaybeOne<T = unknown>(
   return length === 0
     ? undefined
     : fields.length !== 1
-    ? rowParser(rows[0])
-    : rowParser(rows[0][fields[0].name])
+      ? rowParser(rows[0])
+      : rowParser(rows[0][fields[0].name])
 }
 
 /**
