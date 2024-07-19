@@ -209,6 +209,12 @@ describe('execute()', () => {
       execute(db, sql`INSERT INTO users (name) VALUES ('Bethany'), ('Fae')`),
     ).resolves.toBe(2)
   })
+
+  it('returns 0 if the underlying rowCount is null', async () => {
+    await expect(
+      withTransaction(db, (tx) => execute(tx, sql`LOCK TABLE users`)),
+    ).resolves.toBe(0)
+  })
 })
 
 describe('executeOne()', () => {
@@ -264,6 +270,12 @@ describe('executeMaybeOne()', () => {
       ),
     )
     await expect(getUserCount()).resolves.toBe(3)
+  })
+
+  it('returns 0 if the underlying rowCount is null', async () => {
+    await expect(
+      withTransaction(db, (tx) => executeMaybeOne(tx, sql`LOCK TABLE users`)),
+    ).resolves.toBe(0)
   })
 })
 

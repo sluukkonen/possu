@@ -100,7 +100,7 @@ export async function execute(
   sql: SqlQuery,
 ): Promise<number> {
   const { rowCount } = await send(connection, sql)
-  return rowCount
+  return rowCount || 0
 }
 
 /**
@@ -146,13 +146,13 @@ export async function executeMaybeOne(
 ): Promise<number> {
   const { rowCount } = await send(tx, sql)
 
-  if (rowCount > 1)
+  if (rowCount && rowCount > 1)
     throw new ResultError(
       `Expected query to modify 0–1 rows, but it modified ${rowCount} rows`,
       sql,
     )
 
-  return rowCount
+  return rowCount || 0
 }
 
 function send(connection: Connection, sql: SqlQuery): Promise<pg.QueryResult> {
