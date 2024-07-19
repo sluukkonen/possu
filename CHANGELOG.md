@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- [`execute`](README.md#execute) and [`executeMaybeOne`](README.md#executemaybeone)
+  could return `null` [in some circumstances](https://node-postgres.com/apis/result#resultrowcount-int--null). They will now return `0` when the
+  underlying `rowCount` is `null`. It is possible that they will be changed to return `number | null` in a
+  future major version.
+
 ## [3.0.0] - 2023-09-16
 
 ### Changed
