@@ -1,6 +1,6 @@
 # Possu 🐖
 
-[![CI](https://github.com/sluukkonen/possu/workflows/CI/badge.svg)](https://github.com/sluukkonen/possu/actions?query=workflow%3ACI)
+[![CI](https://github.com/sluukkonen/possu/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/sluukkonen/possu/actions/workflows/ci.yml)
 ![License](https://img.shields.io/npm/l/possu)
 [![NPM](https://img.shields.io/npm/v/possu)](https://www.npmjs.com/package/possu)
 
